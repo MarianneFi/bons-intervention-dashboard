@@ -504,8 +504,10 @@ function buildMailto(b) {
   lignes.push("Je fais suite au bon d'intervention n°" + b.numero + " (" + site + "), motif : " + b.motif + ".");
   if (b.constat) lignes.push("Constat au dernier point : " + b.constat);
   if (b.action) {
+    lignes.push("");
     lignes.push("Action attendue : " + b.action);
   } else if (b.remarque) {
+    lignes.push("");
     lignes.push("Remarque : " + b.remarque);
   }
   lignes.push("");
