@@ -23,6 +23,70 @@
     background: var(--gris);
     color: #2b2630;
   }
+
+  nav.topnav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--violet-dark);
+    color: white;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  }
+  nav.topnav .nav-title {
+    font-weight: 700;
+    font-size: 14.5px;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  nav.topnav .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .nav-btn {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.35);
+    color: white;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 7px 13px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.25); }
+  .nav-btn.active { background: var(--rouge); border-color: var(--rouge); }
+  .nav-btn.ghost { background: transparent; }
+  .date-filter {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.1);
+    padding: 5px 10px;
+    border-radius: 20px;
+    flex-wrap: wrap;
+  }
+  .date-filter label {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .date-filter input[type="date"] {
+    border: none;
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-size: 12.5px;
+    font-family: inherit;
+  }
+
   header {
     background: linear-gradient(90deg, var(--violet-dark), var(--violet));
     color: white;
@@ -66,6 +130,28 @@
     border-bottom: 2px solid var(--violet);
     padding-bottom: 6px;
     margin: 36px 0 18px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  h2.section-title .count {
+    text-transform: none;
+    font-size: 12.5px;
+    color: var(--gris-texte);
+    letter-spacing: normal;
+    font-weight: 400;
+  }
+
+  .empty-msg {
+    background: var(--blanc);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    color: var(--gris-texte);
+    font-size: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   }
 
   .card {
@@ -162,115 +248,318 @@
 </head>
 <body>
 
+<nav class="topnav">
+  <div class="nav-title">Bons d'intervention &middot; AAF La Providence</div>
+  <div class="nav-actions">
+    <button id="btnDefault" class="nav-btn">7 derniers jours</button>
+    <button id="btnPending" class="nav-btn">Dossiers en attente</button>
+    <div class="date-filter">
+      <label>Du <input type="date" id="dateFrom"></label>
+      <label>au <input type="date" id="dateTo"></label>
+      <button id="btnApplyRange" class="nav-btn">Filtrer</button>
+      <button id="btnReset" class="nav-btn ghost">Réinitialiser</button>
+    </div>
+  </div>
+</nav>
+
 <header>
   <h1>Tableau de bord - Bons d'intervention</h1>
-  <p>AAF La Providence &middot; Client SEMISE &middot; Dossiers du 19 au 22/07/2026</p>
+  <p id="headerSubtitle">AAF La Providence &middot; Client SEMISE</p>
 </header>
 
 <div class="wrap">
 
-  <div class="kpis">
-    <div class="kpi alert">
-      <div class="num">3</div>
-      <div class="label">Dossiers en attente</div>
-    </div>
-    <div class="kpi">
-      <div class="num">2</div>
-      <div class="label">Dossiers clôturés</div>
-    </div>
-    <div class="kpi alert">
-      <div class="num">2</div>
-      <div class="label">Actions requises de ta part</div>
-    </div>
-    <div class="kpi">
-      <div class="num">2</div>
-      <div class="label">Bons des 2 derniers jours (21-22/07)</div>
-    </div>
+  <div class="kpis" id="kpis"></div>
+
+  <h2 class="section-title">
+    <span id="sectionTitle">Focus</span>
+    <span class="count" id="sectionCount"></span>
+  </h2>
+
+  <div id="cardsContainer"></div>
+
+  <div id="histWrap">
+    <h2 class="section-title"><span>Historique</span></h2>
+    <table class="historique">
+      <thead>
+        <tr>
+          <th>N°</th>
+          <th>Date</th>
+          <th>Site</th>
+          <th>Motif</th>
+          <th>Statut</th>
+          <th>Astreinte</th>
+          <th>Gestionnaire de site</th>
+          <th>Remarque</th>
+        </tr>
+      </thead>
+      <tbody id="histBody"></tbody>
+    </table>
   </div>
 
-  <h2 class="section-title">Focus — bons des 2 derniers jours (21 et 22/07/2026)</h2>
-
-  <div class="card">
-    <div class="card-head">
-      <div class="titre">Bon n°044 &middot; Petite Faucille (R26) <span class="urgence u1">Urgence 1</span></div>
-      <div class="meta">21/07/2026 &middot; 20h40 - 21h45</div>
-    </div>
-    <div class="card-body">
-      <div class="row"><strong>Statut :</strong> <span class="badge pending">Dossier en attente</span></div>
-      <div class="row"><strong>Cadre d'astreinte :</strong> <span class="badge astreinte-oui">Contacté</span> — Mme Bergon, 21h57</div>
-      <div class="row"><strong>Gestionnaire de site :</strong> Christophe Butez (secteur Dalle Robespierre) — 06 99 19 19 86</div>
-      <div class="row"><strong>Motif :</strong> Dépose du lavabo et condamnation d'une évacuation + une alimentation</div>
-      <div class="row"><strong>Constat :</strong> pas de vanne d'arrêt trouvée pour couper l'eau ; le plombier a déposé le lavabo et condamné l'évacuation. L'alimentation reste à condamner par GECOP.</div>
-      <div class="action-box">
-        <strong>Action requise :</strong> relancer GECOP toi-même ou via la permanence — l'alimentation d'eau n'est toujours pas condamnée depuis le 21/07, risque de dégât des eaux tant que ce n'est pas fait.
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-head">
-      <div class="titre">Bon n°045 &middot; Fabien &middot; M. Ateba <span class="urgence u2">Urgence 2</span></div>
-      <div class="meta">22/07/2026 &middot; 19h20 - en cours</div>
-    </div>
-    <div class="card-body">
-      <div class="row"><strong>Statut :</strong> <span class="badge pending">Dossier en attente</span></div>
-      <div class="row"><strong>Cadre d'astreinte :</strong> <span class="badge astreinte-non">Non contacté</span></div>
-      <div class="row"><strong>Gestionnaire de site :</strong> Thaina Phoudiah (secteur Fabien) — 07 68 03 82 46</div>
-      <div class="row"><strong>Motif :</strong> Panne d'ascenseur (appareil n°10208565), bloqué entre étages, hors service</div>
-      <div class="row"><strong>Constat :</strong> société FAIN avisée, intervention annoncée pour le 23/07 (aujourd'hui). Deux relances déjà faites (21h22 et 22h56).</div>
-      <div class="action-box">
-        <strong>Action requise :</strong> vérifier auprès de FAIN que l'intervention du jour a bien eu lieu, sinon relancer une nouvelle fois.
-      </div>
-    </div>
-  </div>
-
-  <h2 class="section-title">Historique (19-20/07/2026)</h2>
-
-  <table class="historique">
-    <tr>
-      <th>N°</th>
-      <th>Date</th>
-      <th>Site</th>
-      <th>Motif</th>
-      <th>Statut</th>
-      <th>Astreinte</th>
-      <th>Gestionnaire de site</th>
-      <th>Remarque</th>
-    </tr>
-    <tr>
-      <td>043</td>
-      <td>20/07</td>
-      <td>Stalingrad &middot; MM Senoussi</td>
-      <td>Levée de doute, locataire injoignable</td>
-      <td><span class="badge pending">En attente</span></td>
-      <td><span class="badge astreinte-oui">Contacté</span> — Mme Bergon, 21h15</td>
-      <td>Ahmed Bou-Mia (secteur Stalingrad) — 07 66 99 20 41</td>
-      <td>En attente du rappel de la locataire</td>
-    </tr>
-    <tr>
-      <td>042</td>
-      <td>20/07</td>
-      <td>Robespierre (R10)</td>
-      <td>Engorgement colonne EV</td>
-      <td><span class="badge closed">Clôturé</span></td>
-      <td><span class="badge astreinte-non">Non contacté</span></td>
-      <td>Christophe Butez (secteur Dalle Robespierre) — 06 99 19 19 86</td>
-      <td>Dégorgement fait par CIG, mais branchement locatif à traiter par un plombier en prévention</td>
-    </tr>
-    <tr>
-      <td>041</td>
-      <td>19/07</td>
-      <td>Villa Matisse &middot; Mme Sissoko</td>
-      <td>WC bouché</td>
-      <td><span class="badge closed">Clôturé</span></td>
-      <td><span class="badge astreinte-non">Non contacté</span></td>
-      <td>Smain Henni Douma (secteur Ampère) — 07 89 02 70 45</td>
-      <td>Intervention à la charge de la locataire, aucune suite nécessaire</td>
-    </tr>
-  </table>
-
-  <footer>Généré à partir des bons d'intervention AAF La Providence n°041 à 045 &middot; 23/07/2026</footer>
+  <footer id="footerNote">Généré à partir des bons d'intervention AAF La Providence</footer>
 </div>
+
+<script>
+// ---------------------------------------------------------------
+// Données des bons d'intervention.
+// Pour ajouter un nouveau bon : dupliquer un objet ci-dessous et
+// modifier les champs. Le tableau de bord se met à jour tout seul
+// (fenêtre "7 derniers jours" recalculée à chaque ouverture).
+// ---------------------------------------------------------------
+const bons = [
+  {
+    numero: "041",
+    date: "2026-07-19",
+    heure: "",
+    site: "Villa Matisse &middot; Mme Sissoko",
+    urgence: null,
+    statut: "cloture",
+    astreinte: "non",
+    astreinteDetail: "",
+    gestionnaire: "Smain Henni Douma (secteur Ampère)",
+    gestionnaireTel: "07 89 02 70 45",
+    motif: "WC bouché",
+    constat: "",
+    action: "",
+    remarque: "Intervention à la charge de la locataire, aucune suite nécessaire"
+  },
+  {
+    numero: "042",
+    date: "2026-07-20",
+    heure: "",
+    site: "Robespierre (R10)",
+    urgence: null,
+    statut: "cloture",
+    astreinte: "non",
+    astreinteDetail: "",
+    gestionnaire: "Christophe Butez (secteur Dalle Robespierre)",
+    gestionnaireTel: "06 99 19 19 86",
+    motif: "Engorgement colonne EV",
+    constat: "",
+    action: "",
+    remarque: "Dégorgement fait par CIG, mais branchement locatif à traiter par un plombier en prévention"
+  },
+  {
+    numero: "043",
+    date: "2026-07-20",
+    heure: "",
+    site: "Stalingrad &middot; MM Senoussi",
+    urgence: null,
+    statut: "attente",
+    astreinte: "oui",
+    astreinteDetail: "Mme Bergon, 21h15",
+    gestionnaire: "Ahmed Bou-Mia (secteur Stalingrad)",
+    gestionnaireTel: "07 66 99 20 41",
+    motif: "Levée de doute, locataire injoignable",
+    constat: "",
+    action: "",
+    remarque: "En attente du rappel de la locataire"
+  },
+  {
+    numero: "044",
+    date: "2026-07-21",
+    heure: "20h40 - 21h45",
+    site: "Petite Faucille (R26)",
+    urgence: "u1",
+    statut: "attente",
+    astreinte: "oui",
+    astreinteDetail: "Mme Bergon, 21h57",
+    gestionnaire: "Christophe Butez (secteur Dalle Robespierre)",
+    gestionnaireTel: "06 99 19 19 86",
+    motif: "Dépose du lavabo et condamnation d'une évacuation + une alimentation",
+    constat: "pas de vanne d'arrêt trouvée pour couper l'eau ; le plombier a déposé le lavabo et condamné l'évacuation. L'alimentation reste à condamner par GECOP.",
+    action: "relancer GECOP toi-même ou via la permanence — l'alimentation d'eau n'est toujours pas condamnée depuis le 21/07, risque de dégât des eaux tant que ce n'est pas fait.",
+    remarque: ""
+  },
+  {
+    numero: "045",
+    date: "2026-07-22",
+    heure: "19h20 - en cours",
+    site: "Fabien &middot; M. Ateba",
+    urgence: "u2",
+    statut: "attente",
+    astreinte: "non",
+    astreinteDetail: "",
+    gestionnaire: "Thaina Phoudiah (secteur Fabien)",
+    gestionnaireTel: "07 68 03 82 46",
+    motif: "Panne d'ascenseur (appareil n°10208565), bloqué entre étages, hors service",
+    constat: "société FAIN avisée, intervention annoncée pour le 23/07. Deux relances déjà faites (21h22 et 22h56).",
+    action: "vérifier auprès de FAIN que l'intervention du jour a bien eu lieu, sinon relancer une nouvelle fois.",
+    remarque: ""
+  }
+];
+
+let state = { mode: "default", from: null, to: null };
+
+function fmtDate(iso) {
+  const [y, m, d] = iso.split("-");
+  return d + "/" + m;
+}
+function fmtDateFull(iso) {
+  const [y, m, d] = iso.split("-");
+  return d + "/" + m + "/" + y;
+}
+function todayISO() {
+  const t = new Date();
+  return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
+}
+function daysAgo(iso) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const d = new Date(iso + "T00:00:00");
+  return Math.round((today - d) / 86400000);
+}
+
+function urgenceLabel(u) {
+  if (u === "u1") return '<span class="urgence u1">Urgence 1</span>';
+  if (u === "u2") return '<span class="urgence u2">Urgence 2</span>';
+  if (u === "u3") return '<span class="urgence u3">Urgence 3</span>';
+  return "";
+}
+function statutBadge(s) {
+  return s === "attente"
+    ? '<span class="badge pending">Dossier en attente</span>'
+    : '<span class="badge closed">Clôturé</span>';
+}
+function astreinteBadge(b) {
+  if (b.astreinte === "oui") return '<span class="badge astreinte-oui">Contacté</span>' + (b.astreinteDetail ? " — " + b.astreinteDetail : "");
+  return '<span class="badge astreinte-non">Non contacté</span>';
+}
+
+function renderCard(b) {
+  const meta = b.date.split("-").reverse().join("/") + (b.heure ? " &middot; " + b.heure : "");
+  const actionOrRemarque = b.action
+    ? '<div class="action-box"><strong>Action requise :</strong> ' + b.action + '</div>'
+    : (b.remarque ? '<div class="action-box"><strong>Remarque :</strong> ' + b.remarque + '</div>' : "");
+  const constat = b.constat ? '<div class="row"><strong>Constat :</strong> ' + b.constat + '</div>' : "";
+  return '' +
+    '<div class="card ' + (b.statut === "cloture" ? "closed" : "") + '">' +
+    '  <div class="card-head">' +
+    '    <div class="titre">Bon n°' + b.numero + ' &middot; ' + b.site + ' ' + urgenceLabel(b.urgence) + '</div>' +
+    '    <div class="meta">' + meta + '</div>' +
+    '  </div>' +
+    '  <div class="card-body">' +
+    '    <div class="row"><strong>Statut :</strong> ' + statutBadge(b.statut) + '</div>' +
+    '    <div class="row"><strong>Cadre d\'astreinte :</strong> ' + astreinteBadge(b) + '</div>' +
+    '    <div class="row"><strong>Gestionnaire de site :</strong> ' + b.gestionnaire + ' — ' + b.gestionnaireTel + '</div>' +
+    '    <div class="row"><strong>Motif :</strong> ' + b.motif + '</div>' +
+    constat +
+    actionOrRemarque +
+    '  </div>' +
+    '</div>';
+}
+
+function renderRow(b) {
+  return '' +
+    '<tr>' +
+    '  <td>' + b.numero + '</td>' +
+    '  <td>' + fmtDate(b.date) + '</td>' +
+    '  <td>' + b.site + '</td>' +
+    '  <td>' + b.motif + '</td>' +
+    '  <td>' + statutBadge(b.statut) + '</td>' +
+    '  <td>' + astreinteBadge(b) + '</td>' +
+    '  <td>' + b.gestionnaire + ' — ' + b.gestionnaireTel + '</td>' +
+    '  <td>' + (b.remarque || (b.action ? b.action : "")) + '</td>' +
+    '</tr>';
+}
+
+function sortDesc(list) {
+  return list.slice().sort((a, b) => b.date.localeCompare(a.date) || a.numero.localeCompare(b.numero));
+}
+
+function render() {
+  const cardsContainer = document.getElementById("cardsContainer");
+  const histWrap = document.getElementById("histWrap");
+  const histBody = document.getElementById("histBody");
+  const sectionTitle = document.getElementById("sectionTitle");
+  const sectionCount = document.getElementById("sectionCount");
+  const headerSubtitle = document.getElementById("headerSubtitle");
+
+  document.getElementById("btnDefault").classList.toggle("active", state.mode === "default");
+  document.getElementById("btnPending").classList.toggle("active", state.mode === "pending");
+
+  let featured = [];
+  let archive = [];
+
+  if (state.mode === "pending") {
+    featured = sortDesc(bons.filter(b => b.statut === "attente"));
+    sectionTitle.textContent = "Dossiers en attente";
+    headerSubtitle.textContent = "AAF La Providence · Client SEMISE · Vue filtrée : dossiers en attente uniquement";
+    histWrap.style.display = "none";
+  } else if (state.mode === "range") {
+    featured = sortDesc(bons.filter(b =>
+      (!state.from || b.date >= state.from) && (!state.to || b.date <= state.to)
+    ));
+    const fromLabel = state.from ? fmtDateFull(state.from) : "…";
+    const toLabel = state.to ? fmtDateFull(state.to) : "…";
+    sectionTitle.textContent = "Résultats du " + fromLabel + " au " + toLabel;
+    headerSubtitle.textContent = "AAF La Providence · Client SEMISE · Vue filtrée par date";
+    histWrap.style.display = "none";
+  } else {
+    featured = sortDesc(bons.filter(b => daysAgo(b.date) >= 0 && daysAgo(b.date) <= 6));
+    archive = sortDesc(bons.filter(b => daysAgo(b.date) > 6 || daysAgo(b.date) < 0));
+    sectionTitle.textContent = "Focus — bons des 7 derniers jours";
+    headerSubtitle.textContent = "AAF La Providence · Client SEMISE · Mis à jour automatiquement (fenêtre glissante de 7 jours)";
+    histWrap.style.display = archive.length ? "block" : "none";
+  }
+
+  sectionCount.textContent = featured.length + (featured.length > 1 ? " dossiers" : " dossier");
+
+  cardsContainer.innerHTML = featured.length
+    ? featured.map(renderCard).join("")
+    : '<div class="empty-msg">Aucun bon d\'intervention ne correspond à cette vue.</div>';
+
+  if (archive.length) {
+    histBody.innerHTML = archive.map(renderRow).join("");
+  }
+
+  // KPIs globaux (indépendants du filtre, sauf le dernier)
+  const totalAttente = bons.filter(b => b.statut === "attente").length;
+  const totalCloture = bons.filter(b => b.statut === "cloture").length;
+  const totalAction = bons.filter(b => b.action).length;
+
+  document.getElementById("kpis").innerHTML =
+    '<div class="kpi alert"><div class="num">' + totalAttente + '</div><div class="label">Dossiers en attente (total)</div></div>' +
+    '<div class="kpi"><div class="num">' + totalCloture + '</div><div class="label">Dossiers clôturés (total)</div></div>' +
+    '<div class="kpi alert"><div class="num">' + totalAction + '</div><div class="label">Actions requises de ta part</div></div>' +
+    '<div class="kpi"><div class="num">' + featured.length + '</div><div class="label">Bons dans la vue actuelle</div></div>';
+
+  document.getElementById("footerNote").textContent =
+    "Généré à partir des bons d'intervention AAF La Providence n°" + bons[0].numero + " à " + bons[bons.length - 1].numero +
+    " · Consulté le " + fmtDateFull(todayISO());
+}
+
+document.getElementById("btnDefault").addEventListener("click", () => {
+  state = { mode: "default", from: null, to: null };
+  document.getElementById("dateFrom").value = "";
+  document.getElementById("dateTo").value = "";
+  render();
+});
+
+document.getElementById("btnPending").addEventListener("click", () => {
+  state = { mode: "pending", from: null, to: null };
+  document.getElementById("dateFrom").value = "";
+  document.getElementById("dateTo").value = "";
+  render();
+});
+
+document.getElementById("btnApplyRange").addEventListener("click", () => {
+  const from = document.getElementById("dateFrom").value || null;
+  const to = document.getElementById("dateTo").value || null;
+  if (!from && !to) return;
+  state = { mode: "range", from, to };
+  render();
+});
+
+document.getElementById("btnReset").addEventListener("click", () => {
+  document.getElementById("dateFrom").value = "";
+  document.getElementById("dateTo").value = "";
+  state = { mode: "default", from: null, to: null };
+  render();
+});
+
+render();
+</script>
 
 </body>
 </html>
