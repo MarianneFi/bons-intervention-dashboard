@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Tableau de bord - Bons d'intervention AAF La Providence</title>
+<style>
+  :root {
+    --violet: #5b2a6e;
+    --violet-dark: #3f1d4d;
+    --rouge: #a3123a;
+    --vert: #1e7d4f;
+    --vert-bg: #e7f5ec;
+    --orange: #c9660a;
+    --orange-bg: #fdf0e2;
+    --gris: #f4f2f6;
+    --gris-texte: #4a4550;
+    --blanc: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--gris);
+    color: #2b2630;
+  }
+  header {
+    background: linear-gradient(90deg, var(--violet-dark), var(--violet));
+    color: white;
+    padding: 28px 40px;
+  }
+  header h1 {
+    margin: 0 0 6px 0;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  header p {
+    margin: 0;
+    opacity: 0.85;
+    font-size: 14px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 24px 60px; }
+
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .kpi {
+    background: var(--blanc);
+    border-radius: 10px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border-top: 4px solid var(--violet);
+  }
+  .kpi .num { font-size: 30px; font-weight: 700; color: var(--violet-dark); line-height: 1.1; }
+  .kpi.alert { border-top-color: var(--rouge); }
+  .kpi.alert .num { color: var(--rouge); }
+  .kpi .label { font-size: 12.5px; color: var(--gris-texte); margin-top: 4px; }
+
+  h2.section-title {
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--violet-dark);
+    border-bottom: 2px solid var(--violet);
+    padding-bottom: 6px;
+    margin: 36px 0 18px 0;
+  }
+
+  .card {
+    background: var(--blanc);
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin-bottom: 18px;
+    overflow: hidden;
+    border-left: 6px solid var(--orange);
+  }
+  .card.closed { border-left-color: var(--vert); }
+
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background: #faf9fb;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .card-head .titre { font-weight: 600; font-size: 15.5px; }
+  .card-head .meta { font-size: 12.5px; color: var(--gris-texte); }
+
+  .badge {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+  .badge.pending { background: var(--orange-bg); color: var(--orange); }
+  .badge.closed { background: var(--vert-bg); color: var(--vert); }
+  .badge.astreinte-oui { background: var(--vert-bg); color: var(--vert); }
+  .badge.astreinte-non { background: #ece8ee; color: #6b6472; }
+
+  .urgence {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 20px;
+    margin-left: 6px;
+    color: white;
+  }
+  .urgence.u1 { background: var(--rouge); }
+  .urgence.u2 { background: var(--orange); }
+  .urgence.u3 { background: #8a8494; }
+
+  .card-body { padding: 16px 20px; font-size: 14px; line-height: 1.5; }
+  .card-body .row { margin-bottom: 8px; }
+  .card-body .row strong { color: var(--violet-dark); }
+  .action-box {
+    margin-top: 12px;
+    background: var(--gris);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13.5px;
+  }
+  .action-box strong { color: var(--rouge); }
+  .card.closed .action-box strong { color: var(--vert); }
+
+  table.historique {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--blanc);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    font-size: 13.5px;
+  }
+  table.historique th {
+    background: var(--violet-dark);
+    color: white;
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+  }
+  table.historique td {
+    padding: 10px 14px;
+    border-top: 1px solid #eee;
+  }
+  table.historique tr:hover td { background: #faf9fb; }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: #948e9c;
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Tableau de bord - Bons d'intervention</h1>
+  <p>AAF La Providence &middot; Client SEMISE &middot; Dossiers du 19 au 22/07/2026</p>
+</header>
+
+<div class="wrap">
+
+  <div class="kpis">
+    <div class="kpi alert">
+      <div class="num">3</div>
+      <div class="label">Dossiers en attente</div>
+    </div>
+    <div class="kpi">
+      <div class="num">2</div>
+      <div class="label">Dossiers clôturés</div>
+    </div>
+    <div class="kpi alert">
+      <div class="num">2</div>
+      <div class="label">Actions requises de ta part</div>
+    </div>
+    <div class="kpi">
+      <div class="num">2</div>
+      <div class="label">Bons des 2 derniers jours (21-22/07)</div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Focus — bons des 2 derniers jours (21 et 22/07/2026)</h2>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="titre">Bon n°044 &middot; Petite Faucille (R26) <span class="urgence u1">Urgence 1</span></div>
+      <div class="meta">21/07/2026 &middot; 20h40 - 21h45</div>
+    </div>
+    <div class="card-body">
+      <div class="row"><strong>Statut :</strong> <span class="badge pending">Dossier en attente</span></div>
+      <div class="row"><strong>Cadre d'astreinte :</strong> <span class="badge astreinte-oui">Contacté</span> — Mme Bergon, 21h57</div>
+      <div class="row"><strong>Gestionnaire de site :</strong> Christophe Butez (secteur Dalle Robespierre) — 06 99 19 19 86</div>
+      <div class="row"><strong>Motif :</strong> Dépose du lavabo et condamnation d'une évacuation + une alimentation</div>
+      <div class="row"><strong>Constat :</strong> pas de vanne d'arrêt trouvée pour couper l'eau ; le plombier a déposé le lavabo et condamné l'évacuation. L'alimentation reste à condamner par GECOP.</div>
+      <div class="action-box">
+        <strong>Action requise :</strong> relancer GECOP toi-même ou via la permanence — l'alimentation d'eau n'est toujours pas condamnée depuis le 21/07, risque de dégât des eaux tant que ce n'est pas fait.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="titre">Bon n°045 &middot; Fabien &middot; M. Ateba <span class="urgence u2">Urgence 2</span></div>
+      <div class="meta">22/07/2026 &middot; 19h20 - en cours</div>
+    </div>
+    <div class="card-body">
+      <div class="row"><strong>Statut :</strong> <span class="badge pending">Dossier en attente</span></div>
+      <div class="row"><strong>Cadre d'astreinte :</strong> <span class="badge astreinte-non">Non contacté</span></div>
+      <div class="row"><strong>Gestionnaire de site :</strong> Thaina Phoudiah (secteur Fabien) — 07 68 03 82 46</div>
+      <div class="row"><strong>Motif :</strong> Panne d'ascenseur (appareil n°10208565), bloqué entre étages, hors service</div>
+      <div class="row"><strong>Constat :</strong> société FAIN avisée, intervention annoncée pour le 23/07 (aujourd'hui). Deux relances déjà faites (21h22 et 22h56).</div>
+      <div class="action-box">
+        <strong>Action requise :</strong> vérifier auprès de FAIN que l'intervention du jour a bien eu lieu, sinon relancer une nouvelle fois.
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Historique (19-20/07/2026)</h2>
+
+  <table class="historique">
+    <tr>
+      <th>N°</th>
+      <th>Date</th>
+      <th>Site</th>
+      <th>Motif</th>
+      <th>Statut</th>
+      <th>Astreinte</th>
+      <th>Gestionnaire de site</th>
+      <th>Remarque</th>
+    </tr>
+    <tr>
+      <td>043</td>
+      <td>20/07</td>
+      <td>Stalingrad &middot; MM Senoussi</td>
+      <td>Levée de doute, locataire injoignable</td>
+      <td><span class="badge pending">En attente</span></td>
+      <td><span class="badge astreinte-oui">Contacté</span> — Mme Bergon, 21h15</td>
+      <td>Ahmed Bou-Mia (secteur Stalingrad) — 07 66 99 20 41</td>
+      <td>En attente du rappel de la locataire</td>
+    </tr>
+    <tr>
+      <td>042</td>
+      <td>20/07</td>
+      <td>Robespierre (R10)</td>
+      <td>Engorgement colonne EV</td>
+      <td><span class="badge closed">Clôturé</span></td>
+      <td><span class="badge astreinte-non">Non contacté</span></td>
+      <td>Christophe Butez (secteur Dalle Robespierre) — 06 99 19 19 86</td>
+      <td>Dégorgement fait par CIG, mais branchement locatif à traiter par un plombier en prévention</td>
+    </tr>
+    <tr>
+      <td>041</td>
+      <td>19/07</td>
+      <td>Villa Matisse &middot; Mme Sissoko</td>
+      <td>WC bouché</td>
+      <td><span class="badge closed">Clôturé</span></td>
+      <td><span class="badge astreinte-non">Non contacté</span></td>
+      <td>Smain Henni Douma (secteur Ampère) — 07 89 02 70 45</td>
+      <td>Intervention à la charge de la locataire, aucune suite nécessaire</td>
+    </tr>
+  </table>
+
+  <footer>Généré à partir des bons d'intervention AAF La Providence n°041 à 045 &middot; 23/07/2026</footer>
+</div>
+
+</body>
+</html>
