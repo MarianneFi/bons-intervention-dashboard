@@ -497,7 +497,7 @@ function buildMailto(b) {
   if (!b.gestionnaireEmail) return "";
   const site = plainText(b.site);
   const nomGestionnaire = plainText(b.gestionnaire).replace(/\s*\(secteur[^)]*\)/i, "").trim();
-  const subject = "Bon d'intervention n°" + b.numero + " - " + site + " - où en est-on ?";
+  const subject = "Bon d'intervention n°" + b.numero + " - " + site;
   const lignes = [];
   lignes.push("Bonjour,");
   lignes.push("");
