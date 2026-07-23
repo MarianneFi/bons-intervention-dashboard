@@ -64,6 +64,17 @@
   .nav-btn:hover { background: rgba(255,255,255,0.25); }
   .nav-btn.active { background: var(--rouge); border-color: var(--rouge); }
   .nav-btn.ghost { background: transparent; }
+  .nav-select {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.35);
+    color: white;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 7px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+  .nav-select option { color: #2b2630; }
   .date-filter {
     display: flex;
     align-items: center;
@@ -161,8 +172,42 @@
     margin-bottom: 18px;
     overflow: hidden;
     border-left: 6px solid var(--orange);
+    display: flex;
+    flex-wrap: wrap;
   }
   .card.closed { border-left-color: var(--vert); }
+
+  .card-main { flex: 1 1 320px; min-width: 0; }
+
+  .card-side {
+    flex: 0 0 190px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: #faf9fb;
+    border-left: 1px solid #eee;
+    text-align: center;
+  }
+  .mail-btn {
+    display: inline-block;
+    background: var(--violet);
+    color: white;
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 9px 14px;
+    border-radius: 8px;
+    line-height: 1.3;
+  }
+  .mail-btn:hover { background: var(--violet-dark); }
+  .mail-btn .sub {
+    display: block;
+    font-weight: 400;
+    font-size: 11px;
+    opacity: 0.85;
+    margin-top: 3px;
+  }
 
   .card-head {
     display: flex;
@@ -237,6 +282,13 @@
     border-top: 1px solid #eee;
   }
   table.historique tr:hover td { background: #faf9fb; }
+  .mail-btn-sm {
+    color: var(--violet-dark);
+    text-decoration: none;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .mail-btn-sm:hover { text-decoration: underline; }
 
   footer {
     text-align: center;
@@ -252,7 +304,11 @@
   <div class="nav-title">Bons d'intervention &middot; AAF La Providence</div>
   <div class="nav-actions">
     <button id="btnDefault" class="nav-btn">7 derniers jours</button>
-    <button id="btnPending" class="nav-btn">Dossiers en attente</button>
+    <select id="statusFilter" class="nav-select">
+      <option value="all">Tous les dossiers</option>
+      <option value="attente">Dossiers en attente</option>
+      <option value="cloture">Dossiers clôturés</option>
+    </select>
     <div class="date-filter">
       <label>Du <input type="date" id="dateFrom"></label>
       <label>au <input type="date" id="dateTo"></label>
@@ -291,6 +347,7 @@
           <th>Astreinte</th>
           <th>Gestionnaire de site</th>
           <th>Remarque</th>
+          <th>Relancer</th>
         </tr>
       </thead>
       <tbody id="histBody"></tbody>
@@ -306,6 +363,8 @@
 // Pour ajouter un nouveau bon : dupliquer un objet ci-dessous et
 // modifier les champs. Le tableau de bord se met à jour tout seul
 // (fenêtre "7 derniers jours" recalculée à chaque ouverture).
+// gestionnaireEmail : adresse de la loge du secteur concerné
+// (cf. Tableau des secteurs SEV), utilisée pour la relance par email.
 // ---------------------------------------------------------------
 const bons = [
   {
@@ -319,6 +378,7 @@ const bons = [
     astreinteDetail: "",
     gestionnaire: "Smain Henni Douma (secteur Ampère)",
     gestionnaireTel: "07 89 02 70 45",
+    gestionnaireEmail: "secteurampere@semise.fr",
     motif: "WC bouché",
     constat: "",
     action: "",
@@ -335,6 +395,7 @@ const bons = [
     astreinteDetail: "",
     gestionnaire: "Christophe Butez (secteur Dalle Robespierre)",
     gestionnaireTel: "06 99 19 19 86",
+    gestionnaireEmail: "secteurrobespierre@semise.fr",
     motif: "Engorgement colonne EV",
     constat: "",
     action: "",
@@ -351,6 +412,7 @@ const bons = [
     astreinteDetail: "Mme Bergon, 21h15",
     gestionnaire: "Ahmed Bou-Mia (secteur Stalingrad)",
     gestionnaireTel: "07 66 99 20 41",
+    gestionnaireEmail: "secteurstalingrad@semise.fr",
     motif: "Levée de doute, locataire injoignable",
     constat: "",
     action: "",
@@ -367,6 +429,7 @@ const bons = [
     astreinteDetail: "Mme Bergon, 21h57",
     gestionnaire: "Christophe Butez (secteur Dalle Robespierre)",
     gestionnaireTel: "06 99 19 19 86",
+    gestionnaireEmail: "secteurrobespierre@semise.fr",
     motif: "Dépose du lavabo et condamnation d'une évacuation + une alimentation",
     constat: "pas de vanne d'arrêt trouvée pour couper l'eau ; le plombier a déposé le lavabo et condamné l'évacuation. L'alimentation reste à condamner par GECOP.",
     action: "relancer GECOP toi-même ou via la permanence — l'alimentation d'eau n'est toujours pas condamnée depuis le 21/07, risque de dégât des eaux tant que ce n'est pas fait.",
@@ -383,6 +446,7 @@ const bons = [
     astreinteDetail: "",
     gestionnaire: "Thaina Phoudiah (secteur Fabien)",
     gestionnaireTel: "07 68 03 82 46",
+    gestionnaireEmail: "secteurfabien@semise.fr",
     motif: "Panne d'ascenseur (appareil n°10208565), bloqué entre étages, hors service",
     constat: "société FAIN avisée, intervention annoncée pour le 23/07. Deux relances déjà faites (21h22 et 22h56).",
     action: "vérifier auprès de FAIN que l'intervention du jour a bien eu lieu, sinon relancer une nouvelle fois.",
@@ -390,7 +454,7 @@ const bons = [
   }
 ];
 
-let state = { mode: "default", from: null, to: null };
+let state = { dateMode: "default", from: null, to: null, statusFilter: "all" };
 
 function fmtDate(iso) {
   const [y, m, d] = iso.split("-");
@@ -409,6 +473,9 @@ function daysAgo(iso) {
   const d = new Date(iso + "T00:00:00");
   return Math.round((today - d) / 86400000);
 }
+function plainText(str) {
+  return (str || "").replace(/&middot;/g, "·");
+}
 
 function urgenceLabel(u) {
   if (u === "u1") return '<span class="urgence u1">Urgence 1</span>';
@@ -426,30 +493,64 @@ function astreinteBadge(b) {
   return '<span class="badge astreinte-non">Non contacté</span>';
 }
 
+function buildMailto(b) {
+  if (!b.gestionnaireEmail) return "";
+  const site = plainText(b.site);
+  const nomGestionnaire = plainText(b.gestionnaire).replace(/\s*\(secteur[^)]*\)/i, "").trim();
+  const subject = "Bon d'intervention n°" + b.numero + " - " + site + " - où en est-on ?";
+  const lignes = [];
+  lignes.push("Bonjour,");
+  lignes.push("");
+  lignes.push("Je fais suite au bon d'intervention n°" + b.numero + " (" + site + "), motif : " + b.motif + ".");
+  if (b.constat) lignes.push("Constat au dernier point : " + b.constat);
+  if (b.action) {
+    lignes.push("Action attendue : " + b.action);
+  } else if (b.remarque) {
+    lignes.push("Remarque : " + b.remarque);
+  }
+  lignes.push("");
+  lignes.push("Peux-tu me faire un point sur l'avancement de ce dossier ?");
+  lignes.push("");
+  lignes.push("Merci,");
+  lignes.push("Marianne Finel");
+  const body = lignes.join("\n");
+  return "mailto:" + b.gestionnaireEmail + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+}
+
 function renderCard(b) {
   const meta = b.date.split("-").reverse().join("/") + (b.heure ? " &middot; " + b.heure : "");
   const actionOrRemarque = b.action
     ? '<div class="action-box"><strong>Action requise :</strong> ' + b.action + '</div>'
     : (b.remarque ? '<div class="action-box"><strong>Remarque :</strong> ' + b.remarque + '</div>' : "");
   const constat = b.constat ? '<div class="row"><strong>Constat :</strong> ' + b.constat + '</div>' : "";
+  const mailLink = buildMailto(b);
+  const nomGestionnaire = plainText(b.gestionnaire).replace(/\s*\(secteur[^)]*\)/i, "").trim();
+  const side = mailLink
+    ? '<div class="card-side"><a class="mail-btn" href="' + mailLink + '">Relancer par email<span class="sub">' + nomGestionnaire + '</span></a></div>'
+    : "";
   return '' +
     '<div class="card ' + (b.statut === "cloture" ? "closed" : "") + '">' +
-    '  <div class="card-head">' +
-    '    <div class="titre">Bon n°' + b.numero + ' &middot; ' + b.site + ' ' + urgenceLabel(b.urgence) + '</div>' +
-    '    <div class="meta">' + meta + '</div>' +
-    '  </div>' +
-    '  <div class="card-body">' +
-    '    <div class="row"><strong>Statut :</strong> ' + statutBadge(b.statut) + '</div>' +
-    '    <div class="row"><strong>Cadre d\'astreinte :</strong> ' + astreinteBadge(b) + '</div>' +
-    '    <div class="row"><strong>Gestionnaire de site :</strong> ' + b.gestionnaire + ' — ' + b.gestionnaireTel + '</div>' +
-    '    <div class="row"><strong>Motif :</strong> ' + b.motif + '</div>' +
+    '  <div class="card-main">' +
+    '    <div class="card-head">' +
+    '      <div class="titre">Bon n°' + b.numero + ' &middot; ' + b.site + ' ' + urgenceLabel(b.urgence) + '</div>' +
+    '      <div class="meta">' + meta + '</div>' +
+    '    </div>' +
+    '    <div class="card-body">' +
+    '      <div class="row"><strong>Statut :</strong> ' + statutBadge(b.statut) + '</div>' +
+    '      <div class="row"><strong>Cadre d\'astreinte :</strong> ' + astreinteBadge(b) + '</div>' +
+    '      <div class="row"><strong>Gestionnaire de site :</strong> ' + b.gestionnaire + ' — ' + b.gestionnaireTel + '</div>' +
+    '      <div class="row"><strong>Motif :</strong> ' + b.motif + '</div>' +
     constat +
     actionOrRemarque +
+    '    </div>' +
     '  </div>' +
+    side +
     '</div>';
 }
 
 function renderRow(b) {
+  const mailLink = buildMailto(b);
+  const mailCell = mailLink ? '<a class="mail-btn-sm" href="' + mailLink + '">Relancer par email</a>' : "";
   return '' +
     '<tr>' +
     '  <td>' + b.numero + '</td>' +
@@ -460,6 +561,7 @@ function renderRow(b) {
     '  <td>' + astreinteBadge(b) + '</td>' +
     '  <td>' + b.gestionnaire + ' — ' + b.gestionnaireTel + '</td>' +
     '  <td>' + (b.remarque || (b.action ? b.action : "")) + '</td>' +
+    '  <td>' + mailCell + '</td>' +
     '</tr>';
 }
 
@@ -493,34 +595,44 @@ function render() {
   const sectionCount = document.getElementById("sectionCount");
   const headerSubtitle = document.getElementById("headerSubtitle");
 
-  document.getElementById("btnDefault").classList.toggle("active", state.mode === "default");
-  document.getElementById("btnPending").classList.toggle("active", state.mode === "pending");
+  document.getElementById("btnDefault").classList.toggle("active", state.dateMode === "default");
+  document.getElementById("statusFilter").value = state.statusFilter;
 
-  let featured = [];
-  let archive = [];
   const active = activeBons();
+  let scoped = [];
+  let archive = [];
+  let dateLabel;
+  let subtitleBase;
 
-  if (state.mode === "pending") {
-    featured = sortDesc(active.filter(b => b.statut === "attente"));
-    sectionTitle.textContent = "Dossiers en attente";
-    headerSubtitle.textContent = "AAF La Providence · Client SEMISE · Vue filtrée : dossiers en attente uniquement";
-    histWrap.style.display = "none";
-  } else if (state.mode === "range") {
-    featured = sortDesc(active.filter(b =>
+  if (state.dateMode === "range") {
+    scoped = active.filter(b =>
       (!state.from || b.date >= state.from) && (!state.to || b.date <= state.to)
-    ));
+    );
     const fromLabel = state.from ? fmtDateFull(state.from) : "…";
     const toLabel = state.to ? fmtDateFull(state.to) : "…";
-    sectionTitle.textContent = "Résultats du " + fromLabel + " au " + toLabel;
-    headerSubtitle.textContent = "AAF La Providence · Client SEMISE · Vue filtrée par date";
-    histWrap.style.display = "none";
+    dateLabel = "Résultats du " + fromLabel + " au " + toLabel;
+    subtitleBase = "AAF La Providence · Client SEMISE · Vue filtrée par date";
   } else {
-    featured = sortDesc(active.filter(b => daysAgo(b.date) >= 0 && daysAgo(b.date) <= 6));
-    archive = sortDesc(active.filter(b => daysAgo(b.date) > 6 || daysAgo(b.date) < 0));
-    sectionTitle.textContent = "Focus — bons des 7 derniers jours";
-    headerSubtitle.textContent = "AAF La Providence · Client SEMISE · Mis à jour automatiquement (fenêtre glissante de 7 jours, clôturés purgés au-delà)";
-    histWrap.style.display = archive.length ? "block" : "none";
+    scoped = active.filter(b => daysAgo(b.date) >= 0 && daysAgo(b.date) <= 6);
+    archive = active.filter(b => daysAgo(b.date) > 6 || daysAgo(b.date) < 0);
+    dateLabel = "Focus — bons des 7 derniers jours";
+    subtitleBase = "AAF La Providence · Client SEMISE · Mis à jour automatiquement (fenêtre glissante de 7 jours, clôturés purgés au-delà)";
   }
+
+  if (state.statusFilter !== "all") {
+    scoped = scoped.filter(b => b.statut === state.statusFilter);
+    archive = archive.filter(b => b.statut === state.statusFilter);
+  }
+
+  const featured = sortDesc(scoped);
+  archive = sortDesc(archive);
+
+  const statusLabel = state.statusFilter === "attente" ? " · Dossiers en attente uniquement"
+    : state.statusFilter === "cloture" ? " · Dossiers clôturés uniquement" : "";
+
+  sectionTitle.textContent = dateLabel + (state.statusFilter !== "all" ? " · " + (state.statusFilter === "attente" ? "en attente" : "clôturés") : "");
+  headerSubtitle.textContent = subtitleBase + statusLabel;
+  histWrap.style.display = archive.length ? "block" : "none";
 
   sectionCount.textContent = featured.length + (featured.length > 1 ? " dossiers" : " dossier");
 
@@ -541,7 +653,7 @@ function render() {
     '<div class="kpi alert"><div class="num">' + totalAttente + '</div><div class="label">Dossiers en attente (total)</div></div>' +
     '<div class="kpi"><div class="num">' + totalCloture + '</div><div class="label">Dossiers clôturés (total)</div></div>' +
     '<div class="kpi alert"><div class="num">' + totalAction + '</div><div class="label">Actions requises de ta part</div></div>' +
-    '<div class="kpi"><div class="num">' + featured.length + '</div><div class="label">Bons dans la vue actuelle</div></div>';
+    '<div class="kpi"><div class="num">' + (featured.length + archive.length) + '</div><div class="label">Bons dans la vue actuelle</div></div>';
 
   document.getElementById("footerNote").textContent =
     "Généré à partir des bons d'intervention AAF La Providence n°" + bons[0].numero + " à " + bons[bons.length - 1].numero +
@@ -549,16 +661,16 @@ function render() {
 }
 
 document.getElementById("btnDefault").addEventListener("click", () => {
-  state = { mode: "default", from: null, to: null };
+  state.dateMode = "default";
+  state.from = null;
+  state.to = null;
   document.getElementById("dateFrom").value = "";
   document.getElementById("dateTo").value = "";
   render();
 });
 
-document.getElementById("btnPending").addEventListener("click", () => {
-  state = { mode: "pending", from: null, to: null };
-  document.getElementById("dateFrom").value = "";
-  document.getElementById("dateTo").value = "";
+document.getElementById("statusFilter").addEventListener("change", (e) => {
+  state.statusFilter = e.target.value;
   render();
 });
 
@@ -566,14 +678,16 @@ document.getElementById("btnApplyRange").addEventListener("click", () => {
   const from = document.getElementById("dateFrom").value || null;
   const to = document.getElementById("dateTo").value || null;
   if (!from && !to) return;
-  state = { mode: "range", from, to };
+  state.dateMode = "range";
+  state.from = from;
+  state.to = to;
   render();
 });
 
 document.getElementById("btnReset").addEventListener("click", () => {
   document.getElementById("dateFrom").value = "";
   document.getElementById("dateTo").value = "";
-  state = { mode: "default", from: null, to: null };
+  state = { dateMode: "default", from: null, to: null, statusFilter: "all" };
   render();
 });
 
