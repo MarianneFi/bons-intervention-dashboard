@@ -464,7 +464,19 @@ function renderRow(b) {
 }
 
 function sortDesc(list) {
-  return list.slice().sort((a, b) => b.date.localeCompare(a.date) || a.numero.localeCompare(b.numero));
+  // 1. dossiers en attente avant les dossiers clôturés
+  // 2. à statut égal, par ordre d'urgence (Urgence 1 > 2 > 3 > non renseignée)
+  // 3. à urgence égale, ordre antéchronologique (le plus récent en premier)
+  const statutRang = (s) => (s === "attente" ? 0 : 1);
+  const urgenceRang = (u) => (u === "u1" ? 1 : u === "u2" ? 2 : u === "u3" ? 3 : 4);
+  return list.slice().sort((a, b) => {
+    const sa = statutRang(a.statut), sb = statutRang(b.statut);
+    if (sa !== sb) return sa - sb;
+    const ua = urgenceRang(a.urgence), ub = urgenceRang(b.urgence);
+    if (ua !== ub) return ua - ub;
+    if (a.date !== b.date) return b.date.localeCompare(a.date);
+    return b.numero.localeCompare(a.numero);
+  });
 }
 
 function render() {
