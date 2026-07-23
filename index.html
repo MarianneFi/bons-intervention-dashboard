@@ -479,6 +479,12 @@ function sortDesc(list) {
   });
 }
 
+// Purge : un dossier clôturé disparaît du tableau de bord 7 jours après sa date.
+// Les dossiers en attente ne sont jamais purgés, quel que soit leur âge.
+function activeBons() {
+  return bons.filter(b => b.statut === "attente" || daysAgo(b.date) <= 6);
+}
+
 function render() {
   const cardsContainer = document.getElementById("cardsContainer");
   const histWrap = document.getElementById("histWrap");
@@ -492,14 +498,15 @@ function render() {
 
   let featured = [];
   let archive = [];
+  const active = activeBons();
 
   if (state.mode === "pending") {
-    featured = sortDesc(bons.filter(b => b.statut === "attente"));
+    featured = sortDesc(active.filter(b => b.statut === "attente"));
     sectionTitle.textContent = "Dossiers en attente";
     headerSubtitle.textContent = "AAF La Providence · Client SEMISE · Vue filtrée : dossiers en attente uniquement";
     histWrap.style.display = "none";
   } else if (state.mode === "range") {
-    featured = sortDesc(bons.filter(b =>
+    featured = sortDesc(active.filter(b =>
       (!state.from || b.date >= state.from) && (!state.to || b.date <= state.to)
     ));
     const fromLabel = state.from ? fmtDateFull(state.from) : "…";
@@ -508,10 +515,10 @@ function render() {
     headerSubtitle.textContent = "AAF La Providence · Client SEMISE · Vue filtrée par date";
     histWrap.style.display = "none";
   } else {
-    featured = sortDesc(bons.filter(b => daysAgo(b.date) >= 0 && daysAgo(b.date) <= 6));
-    archive = sortDesc(bons.filter(b => daysAgo(b.date) > 6 || daysAgo(b.date) < 0));
+    featured = sortDesc(active.filter(b => daysAgo(b.date) >= 0 && daysAgo(b.date) <= 6));
+    archive = sortDesc(active.filter(b => daysAgo(b.date) > 6 || daysAgo(b.date) < 0));
     sectionTitle.textContent = "Focus — bons des 7 derniers jours";
-    headerSubtitle.textContent = "AAF La Providence · Client SEMISE · Mis à jour automatiquement (fenêtre glissante de 7 jours)";
+    headerSubtitle.textContent = "AAF La Providence · Client SEMISE · Mis à jour automatiquement (fenêtre glissante de 7 jours, clôturés purgés au-delà)";
     histWrap.style.display = archive.length ? "block" : "none";
   }
 
@@ -525,10 +532,10 @@ function render() {
     histBody.innerHTML = archive.map(renderRow).join("");
   }
 
-  // KPIs globaux (indépendants du filtre, sauf le dernier)
-  const totalAttente = bons.filter(b => b.statut === "attente").length;
-  const totalCloture = bons.filter(b => b.statut === "cloture").length;
-  const totalAction = bons.filter(b => b.action).length;
+  // KPIs globaux (sur les dossiers actifs, hors clôturés purgés) — indépendants du filtre, sauf le dernier
+  const totalAttente = active.filter(b => b.statut === "attente").length;
+  const totalCloture = active.filter(b => b.statut === "cloture").length;
+  const totalAction = active.filter(b => b.action).length;
 
   document.getElementById("kpis").innerHTML =
     '<div class="kpi alert"><div class="num">' + totalAttente + '</div><div class="label">Dossiers en attente (total)</div></div>' +
