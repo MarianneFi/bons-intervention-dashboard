@@ -1440,9 +1440,10 @@ function renderCard(b) {
     : (b.remarque ? '<div class="action-box"><strong>Remarque :</strong> ' + b.remarque + '</div>' : "");
   const constat = b.constat ? '<div class="row"><strong>Constat :</strong> ' + b.constat + '</div>' : "";
   const mailLink = buildMailto(b);
-  const nomGestionnaire = plainText(b.gestionnaire).replace(/\s*\(secteur[^)]*\)/i, "").trim();
+  const secteurTrouve = plainText(b.gestionnaire).match(/\(secteur\s+([^)]+)\)/i);
+  const libelleSecteur = secteurTrouve ? "Secteur " + secteurTrouve[1].trim() : "";
   const side = '<div class="card-side">' +
-    (mailLink ? '<a class="mail-btn" href="' + mailLink + '">Relancer par email<span class="sub">' + nomGestionnaire + '</span></a>' : '') +
+    (mailLink ? '<a class="mail-btn" href="' + mailLink + '">Relancer par email' + (libelleSecteur ? '<span class="sub">' + libelleSecteur + '</span>' : '') + '</a>' : '') +
     '<button type="button" class="done-btn" data-numero="' + b.numero + '">Marquer comme traité</button>' +
     '</div>';
   return '' +
