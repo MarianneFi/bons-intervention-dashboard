@@ -5,30 +5,42 @@
 <title>Tableau de bord - Bons d'intervention AAF La Providence</title>
 <style>
   :root {
-    --violet: #5b2a6e;
-    --violet-dark: #3f1d4d;
-    --rouge: #a3123a;
-    --vert: #1e7d4f;
-    --vert-bg: #e7f5ec;
-    --orange: #c9660a;
-    --orange-bg: #fdf0e2;
-    --gris: #f4f2f6;
-    --gris-texte: #4a4550;
-    --blanc: #ffffff;
+    /* Identité — une seule teinte, trois valeurs */
+    --ardoise-900: #22303f;
+    --ardoise-700: #33475c;
+    --ardoise-500: #5b7186;
+
+    /* Neutres */
+    --fond:        #f4f5f7;
+    --surface:     #ffffff;
+    --surface-alt: #fafbfc;
+    --bordure:     #e2e6ea;
+    --texte:       #1f2a37;
+    --texte-doux:  #61707f;
+
+    /* Fonctionnels — réservés au sens, jamais à la décoration */
+    --alerte:      #9d2f26;
+    --alerte-bg:   #f6eae8;
+    --attente:     #96631a;
+    --attente-bg:  #f8f0e3;
+    --resolu:      #2c6549;
+    --resolu-bg:   #e9f1ec;
+    --neutre:      #6b7684;
+    --neutre-bg:   #eceef1;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
     font-family: 'Segoe UI', Arial, sans-serif;
-    background: var(--gris);
-    color: #2b2630;
+    background: var(--fond);
+    color: var(--texte);
   }
 
   nav.topnav {
     position: sticky;
     top: 0;
     z-index: 20;
-    background: var(--violet-dark);
+    background: var(--ardoise-900);
     color: white;
     padding: 10px 24px;
     display: flex;
@@ -36,13 +48,19 @@
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
   }
   nav.topnav .nav-title {
     font-weight: 700;
     font-size: 14.5px;
     letter-spacing: 0.3px;
     white-space: nowrap;
+  }
+  nav.topnav .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
   }
   nav.topnav .nav-actions {
     display: flex;
@@ -51,8 +69,8 @@
     flex-wrap: wrap;
   }
   .nav-btn {
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.28);
     color: white;
     font-size: 12.5px;
     font-weight: 600;
@@ -62,11 +80,11 @@
     transition: background 0.15s;
   }
   .nav-btn:hover { background: rgba(255,255,255,0.25); }
-  .nav-btn.active { background: var(--rouge); border-color: var(--rouge); }
+  .nav-btn.active { background: var(--surface); border-color: var(--surface); color: var(--ardoise-900); }
   .nav-btn.ghost { background: transparent; }
   .nav-select {
-    background: rgba(255,255,255,0.12);
-    border: 1px solid rgba(255,255,255,0.35);
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.28);
     color: white;
     font-size: 12.5px;
     font-weight: 600;
@@ -74,7 +92,7 @@
     border-radius: 20px;
     cursor: pointer;
   }
-  .nav-select option { color: #2b2630; }
+  .nav-select option { color: var(--texte); }
   .date-filter {
     display: flex;
     align-items: center;
@@ -99,7 +117,8 @@
   }
 
   header {
-    background: linear-gradient(90deg, var(--violet-dark), var(--violet));
+    background: var(--ardoise-900);
+    border-bottom: 1px solid rgba(255,255,255,0.10);
     color: white;
     padding: 28px 40px;
   }
@@ -122,23 +141,23 @@
     margin-bottom: 32px;
   }
   .kpi {
-    background: var(--blanc);
+    background: var(--surface);
     border-radius: 10px;
     padding: 18px 20px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    border-top: 4px solid var(--violet);
+    border-top: 3px solid var(--ardoise-500);
   }
-  .kpi .num { font-size: 30px; font-weight: 700; color: var(--violet-dark); line-height: 1.1; }
-  .kpi.alert { border-top-color: var(--rouge); }
-  .kpi.alert .num { color: var(--rouge); }
-  .kpi .label { font-size: 12.5px; color: var(--gris-texte); margin-top: 4px; }
+  .kpi .num { font-size: 30px; font-weight: 700; color: var(--ardoise-900); line-height: 1.1; }
+  .kpi.alert { border-top-color: var(--alerte); }
+  .kpi.alert .num { color: var(--alerte); }
+  .kpi .label { font-size: 12.5px; color: var(--texte-doux); margin-top: 4px; }
 
   h2.section-title {
     font-size: 16px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--violet-dark);
-    border-bottom: 2px solid var(--violet);
+    color: var(--ardoise-900);
+    border-bottom: 2px solid var(--ardoise-700);
     padding-bottom: 6px;
     margin: 36px 0 18px 0;
     display: flex;
@@ -150,48 +169,51 @@
   h2.section-title .count {
     text-transform: none;
     font-size: 12.5px;
-    color: var(--gris-texte);
+    color: var(--texte-doux);
     letter-spacing: normal;
     font-weight: 400;
   }
 
   .empty-msg {
-    background: var(--blanc);
+    background: var(--surface);
     border-radius: 10px;
     padding: 20px;
     text-align: center;
-    color: var(--gris-texte);
+    color: var(--texte-doux);
     font-size: 14px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   }
 
   .card {
-    background: var(--blanc);
+    background: var(--surface);
     border-radius: 10px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     margin-bottom: 18px;
     overflow: hidden;
-    border-left: 6px solid var(--orange);
+    border-left: 4px solid var(--attente);
     display: flex;
     flex-wrap: wrap;
   }
-  .card.closed { border-left-color: var(--vert); }
+  .card.closed { border-left-color: var(--resolu); }
 
   .card-main { flex: 1 1 320px; min-width: 0; }
 
   .card-side {
-    flex: 0 0 190px;
+    flex: 0 0 200px;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     justify-content: center;
+    gap: 10px;
     padding: 16px;
-    background: #faf9fb;
-    border-left: 1px solid #eee;
+    background: var(--surface-alt);
+    border-left: 1px solid var(--bordure);
     text-align: center;
   }
   .mail-btn {
-    display: inline-block;
-    background: var(--violet);
+    display: block;
+    text-align: center;
+    background: var(--ardoise-700);
     color: white;
     text-decoration: none;
     font-size: 12.5px;
@@ -200,7 +222,7 @@
     border-radius: 8px;
     line-height: 1.3;
   }
-  .mail-btn:hover { background: var(--violet-dark); }
+  .mail-btn:hover { background: var(--ardoise-900); }
   .mail-btn .sub {
     display: block;
     font-weight: 400;
@@ -209,10 +231,12 @@
     margin-top: 3px;
   }
   .done-btn {
-    display: inline-block;
-    background: var(--vert);
-    color: white;
-    border: none;
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: var(--surface);
+    color: var(--ardoise-900);
+    border: 1px solid var(--bordure);
     font-size: 12.5px;
     font-weight: 600;
     font-family: inherit;
@@ -220,14 +244,13 @@
     border-radius: 8px;
     line-height: 1.3;
     cursor: pointer;
-    margin-top: 8px;
   }
-  .done-btn:hover { background: #16603d; }
+  .done-btn:hover { background: var(--fond); border-color: var(--ardoise-500); }
   .undo-btn {
     display: inline-block;
     background: transparent;
-    color: var(--violet-dark);
-    border: 1px solid var(--violet);
+    color: var(--ardoise-900);
+    border: 1px solid var(--ardoise-700);
     font-size: 12.5px;
     font-weight: 600;
     font-family: inherit;
@@ -236,10 +259,10 @@
     line-height: 1.3;
     cursor: pointer;
   }
-  .undo-btn:hover { background: var(--gris); }
+  .undo-btn:hover { background: var(--fond); }
   .traite-date {
     font-size: 11.5px;
-    color: var(--gris-texte);
+    color: var(--texte-doux);
     margin-top: 8px;
   }
 
@@ -248,12 +271,12 @@
     justify-content: space-between;
     align-items: center;
     padding: 14px 20px;
-    background: #faf9fb;
+    background: var(--surface-alt);
     flex-wrap: wrap;
     gap: 8px;
   }
   .card-head .titre { font-weight: 600; font-size: 15.5px; }
-  .card-head .meta { font-size: 12.5px; color: var(--gris-texte); }
+  .card-head .meta { font-size: 12.5px; color: var(--texte-doux); }
 
   .badge {
     display: inline-block;
@@ -264,10 +287,10 @@
     border-radius: 20px;
     text-transform: uppercase;
   }
-  .badge.pending { background: var(--orange-bg); color: var(--orange); }
-  .badge.closed { background: var(--vert-bg); color: var(--vert); }
-  .badge.astreinte-oui { background: var(--vert-bg); color: var(--vert); }
-  .badge.astreinte-non { background: #ece8ee; color: #6b6472; }
+  .badge.pending { background: var(--attente-bg); color: var(--attente); }
+  .badge.closed { background: var(--resolu-bg); color: var(--resolu); }
+  .badge.astreinte-oui { background: var(--resolu-bg); color: var(--resolu); }
+  .badge.astreinte-non { background: var(--neutre-bg); color: var(--texte-doux); }
 
   .urgence {
     display: inline-block;
@@ -278,34 +301,71 @@
     margin-left: 6px;
     color: white;
   }
-  .urgence.u1 { background: var(--rouge); }
-  .urgence.u2 { background: var(--orange); }
-  .urgence.u3 { background: #8a8494; }
+  .urgence.u1 { background: var(--alerte); }
+  .urgence.u2 { background: var(--attente); }
+  .urgence.u3 { background: var(--neutre); }
 
   .card-body { padding: 16px 20px; font-size: 14px; line-height: 1.5; }
   .card-body .row { margin-bottom: 8px; }
-  .card-body .row strong { color: var(--violet-dark); }
+  .card-body .row strong { color: var(--ardoise-900); }
   .action-box {
     margin-top: 12px;
-    background: var(--gris);
+    background: var(--fond);
     border-radius: 8px;
     padding: 10px 14px;
     font-size: 13.5px;
   }
-  .action-box strong { color: var(--rouge); }
-  .card.closed .action-box strong { color: var(--vert); }
+  .action-box strong { color: var(--alerte); }
+  .card.closed .action-box strong { color: var(--resolu); }
+
+  .hist-panel {
+    background: var(--surface);
+    border: 1px solid var(--bordure);
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    overflow: hidden;
+    margin-top: 36px;
+  }
+  .hist-summary {
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ardoise-900);
+  }
+  .hist-summary::-webkit-details-marker { display: none; }
+  .hist-summary:hover { background: var(--surface-alt); }
+  .hist-summary .count {
+    margin-left: auto;
+    font-size: 12.5px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--texte-doux);
+  }
+  .hist-chevron {
+    font-size: 10px;
+    color: var(--ardoise-500);
+    transition: transform 0.15s ease;
+  }
+  .hist-panel[open] .hist-chevron { transform: rotate(90deg); }
+  .hist-panel[open] .hist-summary { border-bottom: 1px solid var(--bordure); }
 
   table.historique {
     width: 100%;
     border-collapse: collapse;
-    background: var(--blanc);
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    background: var(--surface);
     font-size: 13.5px;
   }
   table.historique th {
-    background: var(--violet-dark);
+    background: var(--ardoise-700);
     color: white;
     text-align: left;
     padding: 10px 14px;
@@ -313,21 +373,36 @@
   }
   table.historique td {
     padding: 10px 14px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--bordure);
   }
-  table.historique tr:hover td { background: #faf9fb; }
+  table.historique tr:hover td { background: var(--surface-alt); }
   .mail-btn-sm {
-    color: var(--violet-dark);
+    color: var(--ardoise-900);
     text-decoration: none;
     font-weight: 600;
     white-space: nowrap;
   }
   .mail-btn-sm:hover { text-decoration: underline; }
+  .done-btn-sm {
+    display: block;
+    margin-top: 8px;
+    background: var(--surface);
+    color: var(--ardoise-900);
+    border: 1px solid var(--bordure);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 5px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .done-btn-sm:hover { background: var(--fond); border-color: var(--ardoise-500); }
 
   footer {
     text-align: center;
     font-size: 12px;
-    color: #948e9c;
+    color: var(--texte-doux);
     margin-top: 40px;
   }
 </style>
@@ -338,7 +413,6 @@
   <div class="nav-title">Bons d'intervention &middot; AAF La Providence</div>
   <div class="nav-actions">
     <button id="btnDefault" class="nav-btn">7 derniers jours</button>
-    <button id="btnTraites" class="nav-btn ghost">Sujets traités</button>
     <select id="statusFilter" class="nav-select">
       <option value="all">Tous les dossiers</option>
       <option value="attente">Dossiers en attente</option>
@@ -350,6 +424,10 @@
       <button id="btnApplyRange" class="nav-btn">Filtrer</button>
       <button id="btnReset" class="nav-btn ghost">Réinitialiser</button>
     </div>
+  </div>
+  <div class="nav-right">
+    <button id="btnAccueil" class="nav-btn ghost">&larr; Accueil</button>
+    <button id="btnTraites" class="nav-btn ghost">Sujets traités</button>
   </div>
 </nav>
 
@@ -370,8 +448,12 @@
 
     <div id="cardsContainer"></div>
 
-    <div id="histWrap">
-      <h2 class="section-title"><span>Historique</span></h2>
+    <details id="histWrap" class="hist-panel">
+      <summary class="hist-summary">
+        <span class="hist-chevron">&#9654;</span>
+        <span>Historique</span>
+        <span class="count" id="histCount"></span>
+      </summary>
       <table class="historique">
         <thead>
           <tr>
@@ -383,12 +465,12 @@
             <th>Astreinte</th>
             <th>Gestionnaire de site</th>
             <th>Remarque</th>
-            <th>Relancer</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody id="histBody"></tbody>
       </table>
-    </div>
+    </details>
   </div>
 
   <div id="traitesWrap" style="display:none;">
@@ -1379,7 +1461,8 @@ function renderCard(b) {
 
 function renderRow(b) {
   const mailLink = buildMailto(b);
-  const mailCell = mailLink ? '<a class="mail-btn-sm" href="' + mailLink + '">Relancer par email</a>' : "";
+  const mailCell = (mailLink ? '<a class="mail-btn-sm" href="' + mailLink + '">Relancer par email</a>' : "") +
+    '<button type="button" class="done-btn-sm" data-numero="' + b.numero + '">Marquer comme traité</button>';
   return '' +
     '<tr>' +
     '  <td>' + b.numero + '</td>' +
@@ -1461,7 +1544,10 @@ function render() {
 
   const traitesData = loadTraites();
   const traitesListe = traiteBonsList();
-  btnTraites.textContent = "Sujets traités" + (traitesListe.length ? " (" + traitesListe.length + ")" : "");
+  btnTraites.textContent = "Sujets traités";
+  document.getElementById("btnAccueil").style.display = state.view === "traites" ? "" : "none";
+  // en vue « Sujets traités », les filtres du tableau de bord ne s'appliquent pas
+  document.querySelector(".nav-actions").style.display = state.view === "traites" ? "none" : "";
   btnTraites.classList.toggle("active", state.view === "traites");
   btnTraites.classList.toggle("ghost", state.view !== "traites");
 
@@ -1516,6 +1602,8 @@ function render() {
   sectionTitle.textContent = dateLabel + (state.statusFilter !== "all" ? " · " + (state.statusFilter === "attente" ? "en attente" : "clôturés") : "");
   headerSubtitle.textContent = subtitleBase + statusLabel;
   histWrap.style.display = archive.length ? "block" : "none";
+  document.getElementById("histCount").textContent =
+    archive.length + (archive.length > 1 ? " bons" : " bon");
 
   sectionCount.textContent = featured.length + (featured.length > 1 ? " dossiers" : " dossier");
 
@@ -1578,7 +1666,19 @@ document.getElementById("btnReset").addEventListener("click", () => {
 });
 
 document.getElementById("btnTraites").addEventListener("click", () => {
-  state.view = state.view === "traites" ? "dashboard" : "traites";
+  state.view = "traites";
+  render();
+});
+
+document.getElementById("btnAccueil").addEventListener("click", () => {
+  state.view = "dashboard";
+  render();
+});
+
+document.getElementById("histBody").addEventListener("click", (e) => {
+  const btn = e.target.closest(".done-btn-sm");
+  if (!btn) return;
+  marquerTraite(btn.getAttribute("data-numero"));
   render();
 });
 
