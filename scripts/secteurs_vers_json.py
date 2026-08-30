@@ -25,7 +25,7 @@ def _plat(s):
 
 
 def _titre(nom):
-    """SMAIN HENNI DOUMA -> Smain Henni Douma, en gardant les traits d'union."""
+    """NOM DE FAMILLE -> Nom De Famille, en gardant les traits d'union."""
     mots = []
     for mot in re.split(r"(\s+)", (nom or "").strip()):
         if not mot.strip():
