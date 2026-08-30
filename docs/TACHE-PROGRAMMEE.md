@@ -71,27 +71,51 @@ demander ailleurs. L'authentification est persistante.
 
 ### 3.3 Localiser le dossier des bons
 
-Un flux Power Automate appartenant à Marianne dépose chaque bon reçu par mail dans son
-OneDrive. OneDrive étant synchronisé sur le Mac, c'est un dossier ordinaire :
+Un flux Power Automate appartenant à Marianne dépose chaque bon reçu par mail dans le
+dossier **`Bons dintervention`** de son OneDrive professionnel.
+
+**Prérequis à vérifier en premier : ce dossier doit être synchronisé localement sur le
+Mac.** Sans cela, la tâche n'a aucun moyen de le lire.
 
 ```bash
-find ~ -maxdepth 5 -type d -name "Bons dintervention" 2>/dev/null
+find ~ -maxdepth 6 -type d -name "Bons dintervention" 2>/dev/null
+ls ~/Library/CloudStorage/ 2>/dev/null
 ```
 
-Noter le chemin. Il contient les `.docx` **et** le fichier
-`Tableau des secteurs SEV <date>.xlsx`.
+- **Un chemin s'affiche** : noter ce chemin, c'est `<dossier>` dans la suite.
+- **Rien ne s'affiche** : la synchronisation OneDrive n'est pas active pour ce dossier.
+  C'est un préalable, pas un détail. Demander à Marianne d'ouvrir OneDrive sur son Mac
+  et de synchroniser ce dossier, puis recommencer. Ne pas chercher de contournement.
 
-### 3.4 Générer la table des secteurs
+### 3.4 Obtenir la table des secteurs
 
 Le bon d'intervention ne porte pas le gestionnaire de site : il se déduit de la
-résidence. Le script convertit le tableau Excel en index exploitable :
+résidence, via le « Tableau des secteurs SEV ». Le fichier `secteurs.json` qui en
+découle contient des coordonnées de personnels — il ne peut donc pas vivre dans le
+dépôt public.
+
+**Il est déjà généré**, dans le dépôt privé de Marianne
+`MarianneFi/bons-intervention-source`, à `reference/secteurs.json`. Le récupérer :
 
 ```bash
-python3 scripts/secteurs_vers_json.py "<dossier>/Tableau des secteurs SEV 02.06.2026.xlsx" > data/secteurs.json
+git clone https://github.com/MarianneFi/bons-intervention-source.git /tmp/src
+cp /tmp/src/reference/secteurs.json data/secteurs.json
+rm -rf /tmp/src
 ```
 
-`data/` est ignoré par git : ce fichier contient des coordonnées de personnels et ne
-doit jamais être versionné. À régénérer à chaque nouvelle version du tableau.
+Version en cours : établie à partir du tableau daté du **02.06.2026**.
+
+**Si Marianne dispose d'une version plus récente du tableau Excel**, où qu'il se trouve
+sur sa machine, le régénérer :
+
+```bash
+python3 scripts/secteurs_vers_json.py "<chemin du .xlsx>" > data/secteurs.json
+```
+
+et redéposer le résultat dans le dépôt privé pour la prochaine fois.
+
+`data/` est ignoré par git dans ce dépôt-ci : `secteurs.json` ne doit jamais y être
+versionné.
 
 ### 3.5 Vérifier la chaîne
 

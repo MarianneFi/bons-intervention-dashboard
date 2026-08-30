@@ -77,6 +77,15 @@ consultable à distance : elle est attachée au Claude Cowork du poste de Marian
   **Centre Gare**. Les deux fiches se contredisent, l'une des deux est fausse ;
 - deux bons portent le numéro `020.08.2026` (Fabien et Stalingrad).
 
+**Deux hypothèses jamais vérifiées**, sur lesquelles repose toute la tâche Cowork :
+- que le dossier OneDrive `Bons dintervention` soit **synchronisé localement** sur le
+  Mac de Marianne. Power Automate y dépose bien les fichiers, mais rien ne prouve que
+  le dossier existe côté poste. C'est le premier point à contrôler chez elle, et c'est
+  bloquant.
+- où se trouve le **tableau Excel des secteurs** sur sa machine. Il n'a été vu que dans
+  le dossier de travail local de Maxime. Contournement en place : `secteurs.json` est
+  déjà généré et déposé dans le dépôt privé, la tâche le récupère là.
+
 **Accès à retirer en fin de mission** : `maxtaillebois` est collaborateur des deux
 dépôts.
 
@@ -140,7 +149,7 @@ Prestataire AAF La Providence
 Power Automate  (flux de Marianne, tenant SEMISE)
    │  dépose la pièce jointe
    ▼
-OneDrive « Bons dintervention »  ──sync──>  Mac de Marianne
+OneDrive « Bons dintervention »  ──sync ?──>  Mac de Marianne
                                                │
                                                ▼
                                     Claude Cowork  (à remonter)
@@ -161,7 +170,7 @@ OneDrive « Bons dintervention »  ──sync──>  Mac de Marianne
 |---|---|
 | Tableau de bord | `https://bons-intervention-semise.marianne-finel.workers.dev` |
 | Dépôt public (code) | `MarianneFi/bons-intervention-dashboard` |
-| Dépôt privé (source) | `MarianneFi/bons-intervention-source` — créé, inutilisé depuis l'abandon de la piste cloud |
+| Dépôt privé (source) | `MarianneFi/bons-intervention-source` — porte `reference/secteurs.json`, seul usage restant après l'abandon de la piste cloud |
 | Compte Cloudflare | `185ad6e4a1d4a950b1c248677784df0e` |
 | Namespace KV | `BONS` · `da72f3e97ef14479a8ad724c72d45f66` |
 | Équipe Access | `tiny-river-e084.cloudflareaccess.com` |
