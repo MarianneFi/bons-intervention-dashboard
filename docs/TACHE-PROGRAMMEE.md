@@ -183,6 +183,34 @@ ls ~/Library/CloudStorage/OneDrive-*/["B"]ons\ dintervention 2>/dev/null || \
 contient le `numero` : `50.08.2026`. C'est la clé de dé-duplication — un fichier dont
 le numéro est déjà dans KV a déjà été traité.
 
+**Trois couches de travail, pas une.** L'extraction seule ne suffit pas. Mesuré sur les
+39 bons dont le `.docx` et l'entrée en base se correspondent :
+
+| Champ | Extraction fidèle | Nature du travail |
+|---|---|---|
+| `date` | 39/39 | mécanique |
+| `statut` | 36/39 | mécanique, mais évolue après coup |
+| `heure`, `site`, `astreinte` | 23-27/39 | mécanique + normalisation |
+| `motif` | 13/39 | reformulation |
+| `constat`, `remarque` | 0-2/39 | **réécriture intégrale** |
+
+Le document contient le récit de l'agent à la première personne (« Sur place, je
+constate que… »). La base contient une synthèse condensée à la troisième personne
+(« Porte sitex du logement vacant restée grandement ouverte… »). Ce n'est pas de
+l'extraction, c'est de la rédaction — et c'est précisément le travail attendu de Claude.
+
+`scripts/extraire_bon.py` fait la couche mécanique et rend un squelette prérempli.
+Claude reprend ensuite `motif`, `constat` et `remarque` en style synthétique, accentue
+les noms (`VERONIQUE` → `Véronique`), attribue `urgence`, et rédige `action` s'il y a
+quelque chose à faire.
+
+**Le numéro n'est pas une clé fiable.** Deux bons du lot portent `020.08.2026`
+(résidences Fabien et Stalingrad). Dé-dupliquer sur `numero` **et** `site`.
+
+**Le statut évolue après coup.** Un bon écrit « en cours » est clôturé plus tard par
+Marianne. Une réexécution ne doit jamais écraser un statut plus avancé que celui du
+document.
+
 **Ce que le `.docx` doit fournir.** Les autres champs (`date`, `heure`, `site`,
 `urgence`, `statut`, `astreinte`, `motif`, `constat`, `action`, `remarque`) se lisent
 dans le corps du document. Ouvrir un fichier existant du dossier pour repérer où
