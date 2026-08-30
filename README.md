@@ -32,10 +32,9 @@ dans un commit, et ne jamais réintroduire de données dans `public/index.html`.
    npx wrangler kv namespace create BONS
    ```
 
-2. Renseigner dans `wrangler.toml` les deux variables Access, lues dans
-   Zero Trust > Access > Applications > l'application > Overview :
-   - `ACCESS_TEAM_DOMAIN` — le domaine d'équipe, ex. `semise.cloudflareaccess.com`
-   - `ACCESS_AUD` — l'Application Audience (AUD) Tag
+2. Les variables Access sont déjà renseignées dans `wrangler.toml`
+   (`ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`). Elles ne changent que si l'application
+   Access est recréée.
 
 3. Charger les données :
 
@@ -66,7 +65,18 @@ défaut de configuration provoque un refus, jamais un accès ouvert.
 
 ## Points de vigilance
 
-- `workers_dev = false` doit le rester. Access protège le domaine personnalisé,
-  pas `*.workers.dev` : rouvrir cette route contournerait l'authentification.
-- GitHub Pages doit rester désactivé sur ce dépôt. Une publication Pages sert les
-  fichiers sans passer par Access.
+- **Le service n'a qu'un seul hostname** : `bons-intervention-semise.marianne-finel.workers.dev`,
+  protégé par l'application Access `bons-intervention-semise`. Contrairement à ce
+  qui a longtemps été vrai chez Cloudflare, Access s'applique bien ici à une URL
+  `workers.dev` — vérifié : une requête anonyme est redirigée vers l'écran de
+  connexion. `workers_dev = true` doit donc le rester tant qu'aucun domaine
+  personnalisé n'a pris le relais.
+- **Si un domaine personnalisé est ajouté**, il lui faut sa propre application
+  Access. Une route non couverte par une application sert le Worker sans
+  authentification — et le Worker refuserait alors les requêtes (401), ce qui
+  rendra le problème visible plutôt que silencieux.
+- **GitHub Pages doit rester désactivé** sur ce dépôt. Une publication Pages sert
+  les fichiers sans passer par Access, ce qui a été la cause de la fuite initiale.
+- `ACCESS_AUD` et `ACCESS_TEAM_DOMAIN` ne sont pas des secrets : ils identifient
+  l'application. La sécurité repose sur la vérification de la signature du jeton,
+  pas sur leur confidentialité.

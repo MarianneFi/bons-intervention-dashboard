@@ -1,23 +1,28 @@
 name = "bons-intervention-semise"
 main = "src/worker.js"
+account_id = "185ad6e4a1d4a950b1c248677784df0e"
 compatibility_date = "2026-07-23"
 
-# Coupe la route *.workers.dev. Cloudflare Access protège le domaine
-# personnalisé, PAS workers.dev : laisser cette route ouverte permettrait
-# de contourner l'authentification en devinant l'URL.
-workers_dev = false
+# La route workers.dev est CONSERVÉE : c'est l'unique hostname du service,
+# et l'application Access "bons-intervention-semise" le protège bien
+# (vérifié : une requête anonyme est redirigée vers l'écran de connexion).
+# Ne pas la couper sans avoir d'abord basculé sur un domaine personnalisé
+# ET créé l'application Access correspondante.
+workers_dev = true
 
 # Seul ce dossier est publié. Il ne contient que du code, aucune donnée.
 [assets]
 directory = "./public"
 
 [vars]
-# Renseigner avec le domaine d'équipe Zero Trust et l'Audience Tag de
-# l'application Access (Zero Trust > Access > Applications > Overview).
-ACCESS_TEAM_DOMAIN = "A_RENSEIGNER.cloudflareaccess.com"
-ACCESS_AUD = "A_RENSEIGNER"
+# Domaine d'équipe Zero Trust et Audience Tag de l'application Access
+# "bons-intervention-semise" (Access controls > Applications).
+# Ce ne sont pas des secrets : l'AUD identifie l'application, il ne
+# donne aucun accès. La sécurité tient à la signature du jeton.
+ACCESS_TEAM_DOMAIN = "tiny-river-e084.cloudflareaccess.com"
+ACCESS_AUD = "6b5b49ab227a21c65fc27585f716f3032e57f6de85801d02cd2f2623a6224f1f"
 
 [[kv_namespaces]]
 binding = "BONS"
-# Remplacer par l'id rendu par : wrangler kv namespace create BONS
-id = "A_RENSEIGNER"
+# Namespace créé le 30/08/2026 (wrangler kv namespace create BONS)
+id = "da72f3e97ef14479a8ad724c72d45f66"
