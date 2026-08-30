@@ -77,14 +77,14 @@ consultable à distance : elle est attachée au Claude Cowork du poste de Marian
   **Centre Gare**. Les deux fiches se contredisent, l'une des deux est fausse ;
 - deux bons portent le numéro `020.08.2026` (Fabien et Stalingrad).
 
-**Deux hypothèses jamais vérifiées**, sur lesquelles repose toute la tâche Cowork :
-- que le dossier OneDrive `Bons dintervention` soit **synchronisé localement** sur le
-  Mac de Marianne. Power Automate y dépose bien les fichiers, mais rien ne prouve que
-  le dossier existe côté poste. C'est le premier point à contrôler chez elle, et c'est
-  bloquant.
-- où se trouve le **tableau Excel des secteurs** sur sa machine. Il n'a été vu que dans
-  le dossier de travail local de Maxime. Contournement en place : `secteurs.json` est
-  déjà généré et déposé dans le dépôt privé, la tâche le récupère là.
+**Le poste de Marianne est un PC Windows**, et le dossier OneDrive
+`Bons dintervention` y est bien synchronisé localement — confirmé par Maxime. La
+procédure est donc écrite en PowerShell.
+
+**Une hypothèse levée par contournement** : l'emplacement du **tableau Excel des
+secteurs** sur sa machine reste inconnu — il n'a été vu que dans le dossier de travail
+local de Maxime. `secteurs.json` étant déjà généré et déposé dans le dépôt privé, la
+tâche le récupère là et n'a pas besoin du tableur.
 
 **Accès à retirer en fin de mission** : `maxtaillebois` est collaborateur des deux
 dépôts.
@@ -149,7 +149,7 @@ Prestataire AAF La Providence
 Power Automate  (flux de Marianne, tenant SEMISE)
    │  dépose la pièce jointe
    ▼
-OneDrive « Bons dintervention »  ──sync ?──>  Mac de Marianne
+OneDrive « Bons dintervention »  ──sync──>  PC Windows de Marianne
                                                │
                                                ▼
                                     Claude Cowork  (à remonter)

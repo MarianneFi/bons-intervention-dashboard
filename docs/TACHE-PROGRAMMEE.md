@@ -1,6 +1,9 @@
 # Mettre à jour le tableau de bord des bons d'intervention
 
 **Destinataire : Claude, sur le poste de Marianne Finel (Claude Cowork).**
+**Environnement : PC Windows.** Les commandes ci-dessous sont écrites pour
+**PowerShell**. Sur Windows, `python3` s'appelle généralement `python` : adapter si la
+commande est introuvable.
 **À jour au 30 août 2026. Ce document se suffit à lui-même** — aucune connaissance
 de l'ancienne tâche programmée n'est nécessaire, elle ne peut plus fonctionner.
 
@@ -50,7 +53,7 @@ service. Passer `workers_dev = false` mettrait le tableau de bord hors ligne.
 
 ### 3.1 Cloner et installer
 
-```bash
+```powershell
 git clone https://github.com/MarianneFi/bons-intervention-dashboard.git
 cd bons-intervention-dashboard
 npm install
@@ -60,7 +63,7 @@ Node.js est requis. `npm install` installe Wrangler en local.
 
 ### 3.2 Authentifier Cloudflare
 
-```bash
+```powershell
 npx wrangler login
 npx wrangler whoami
 ```
@@ -74,18 +77,20 @@ demander ailleurs. L'authentification est persistante.
 Un flux Power Automate appartenant à Marianne dépose chaque bon reçu par mail dans le
 dossier **`Bons dintervention`** de son OneDrive professionnel.
 
-**Prérequis à vérifier en premier : ce dossier doit être synchronisé localement sur le
-Mac.** Sans cela, la tâche n'a aucun moyen de le lire.
+La synchronisation est active sur le poste de Marianne — le dossier existe donc
+localement. Le localiser :
 
-```bash
-find ~ -maxdepth 6 -type d -name "Bons dintervention" 2>/dev/null
-ls ~/Library/CloudStorage/ 2>/dev/null
+```powershell
+Get-ChildItem -Path $env:USERPROFILE -Directory -Recurse -Depth 3 -Filter "Bons dintervention" -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
 ```
 
-- **Un chemin s'affiche** : noter ce chemin, c'est `<dossier>` dans la suite.
-- **Rien ne s'affiche** : la synchronisation OneDrive n'est pas active pour ce dossier.
-  C'est un préalable, pas un détail. Demander à Marianne d'ouvrir OneDrive sur son Mac
-  et de synchroniser ce dossier, puis recommencer. Ne pas chercher de contournement.
+Le chemin ressemble à `C:\Users\<utilisateur>\OneDrive - SEMISE\Bons dintervention`.
+La variable `$env:OneDriveCommercial` donne directement la racine OneDrive
+professionnelle si elle est définie.
+
+Noter ce chemin : c'est `<dossier>` dans la suite. S'il ne remonte rien, ne pas
+chercher de contournement — vérifier avec Marianne que le dossier est bien
+synchronisé.
 
 ### 3.4 Obtenir la table des secteurs
 
@@ -97,10 +102,10 @@ dépôt public.
 **Il est déjà généré**, dans le dépôt privé de Marianne
 `MarianneFi/bons-intervention-source`, à `reference/secteurs.json`. Le récupérer :
 
-```bash
-git clone https://github.com/MarianneFi/bons-intervention-source.git /tmp/src
-cp /tmp/src/reference/secteurs.json data/secteurs.json
-rm -rf /tmp/src
+```powershell
+git clone https://github.com/MarianneFi/bons-intervention-source.git "$env:TEMP\src"
+Copy-Item "$env:TEMP\src\reference\secteurs.json" .\data\secteurs.json
+Remove-Item -Recurse -Force "$env:TEMP\src"
 ```
 
 Version en cours : établie à partir du tableau daté du **02.06.2026**.
@@ -108,8 +113,9 @@ Version en cours : établie à partir du tableau daté du **02.06.2026**.
 **Si Marianne dispose d'une version plus récente du tableau Excel**, où qu'il se trouve
 sur sa machine, le régénérer :
 
-```bash
-python3 scripts/secteurs_vers_json.py "<chemin du .xlsx>" > data/secteurs.json
+```powershell
+$out = python scripts\secteurs_vers_json.py "<chemin du .xlsx>" | Out-String
+[IO.File]::WriteAllText("$PWD\data\secteurs.json", $out, (New-Object Text.UTF8Encoding $false))
 ```
 
 et redéposer le résultat dans le dépôt privé pour la prochaine fois.
@@ -119,8 +125,8 @@ versionné.
 
 ### 3.5 Vérifier la chaîne
 
-```bash
-npx wrangler kv key get --binding=BONS bons --remote | head -c 200
+```powershell
+(npx wrangler kv key get --binding=BONS bons --remote) -join "" | Select-Object -First 1
 ```
 
 Un début de tableau JSON s'affiche : tout est prêt.
@@ -134,12 +140,17 @@ qui déclare le lien `BONS` vers le namespace KV. Ailleurs, elles échouent.
 
 ### Étape A — Lire l'état actuel
 
-```bash
-npx wrangler kv key get --binding=BONS bons --remote > /tmp/bons.json
+```powershell
+$json = npx wrangler kv key get --binding=BONS bons --remote | Out-String
+[IO.File]::WriteAllText("$env:TEMP\bons.json", $json, (New-Object Text.UTF8Encoding $false))
 ```
 
 Sortie JSON pure, sans bannière. **C'est la seule source de vérité** : ne jamais
 reconstruire ce tableau de mémoire ni depuis une copie locale.
+
+**Ne pas utiliser la redirection `>` de PowerShell.** En PowerShell 5.1, celle encore
+livrée avec Windows, `>` écrit en UTF-16 avec BOM : le fichier obtenu n'est plus du
+JSON lisible. L'écriture explicite ci-dessus est valable quelle que soit la version.
 
 ### Étape B — Repérer les bons non traités
 
@@ -151,8 +162,8 @@ Le numéro est dans le nom.
 
 ### Étape C — Extraire la couche mécanique
 
-```bash
-python3 scripts/extraire_bon.py "<dossier>/Bon d'intervention N°50.08.2026..docx"
+```powershell
+python scripts\extraire_bon.py "<dossier>\Bon d'intervention N°50.08.2026..docx"
 ```
 
 Le script gère les **deux mises en page** qui coexistent dans les documents du
@@ -204,8 +215,8 @@ clôturé plus tard par Marianne, directement dans les données. Une réexécuti
 
 ### Étape F — Écrire
 
-```bash
-npx wrangler kv key put --binding=BONS bons --path=/tmp/bons.json --remote
+```powershell
+npx wrangler kv key put --binding=BONS bons --path="$env:TEMP\bons.json" --remote
 ```
 
 **`--remote` est obligatoire dans les deux sens.** Sans lui, Wrangler travaille sur un
@@ -213,11 +224,11 @@ stockage local de développement : la commande réussit et la production ne chan
 
 ### Étape G — Vérifier et nettoyer
 
-```bash
-npx wrangler kv key get --binding=BONS bons --remote \
-  | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const b=JSON.parse(s);console.log(b.length+" bons, dernier : "+b[b.length-1].numero)})'
+```powershell
+$v = (npx wrangler kv key get --binding=BONS bons --remote | Out-String | ConvertFrom-Json)
+"$($v.Count) bons, dernier : $($v[-1].numero)"
 
-rm /tmp/bons.json
+Remove-Item "$env:TEMP\bons.json"
 ```
 
 Le fichier temporaire contient des données personnelles : il ne reste pas sur le disque.
@@ -241,7 +252,10 @@ Va jusqu'au bout en une seule traite. Ne demande aucune confirmation :
 personne ne lit pendant l'exécution.
 
 ÉTAPE 1 — LIRE L'ÉTAT ACTUEL
-  npx wrangler kv key get --binding=BONS bons --remote > /tmp/bons.json
+  $json = npx wrangler kv key get --binding=BONS bons --remote | Out-String
+  [IO.File]::WriteAllText("$env:TEMP\bons.json", $json, (New-Object Text.UTF8Encoding $false))
+N'utilise PAS la redirection > de PowerShell : en 5.1 elle écrit en
+UTF-16 avec BOM et le JSON devient illisible.
 C'est la seule source de vérité. Si la commande échoue sur
 l'authentification, arrête-toi et signale-le : il faut relancer
 npx wrangler login, ce qui demande une présence humaine.
@@ -254,7 +268,7 @@ deux bons peuvent porter le même numéro pour des résidences différentes.
 
 ÉTAPE 3 — EXTRAIRE
 Pour chaque nouveau fichier :
-  python3 scripts/extraire_bon.py "<chemin du .docx>"
+  python scripts\extraire_bon.py "<chemin du .docx>"
 Le script gère les deux mises en page du prestataire et rend un squelette.
 
 ÉTAPE 4 — RÉDIGER
@@ -275,13 +289,13 @@ Ajoute les nouveaux bons à la fin. N'écrase JAMAIS un statut plus avancé
 que celui du document : un bon peut avoir été clôturé après coup.
 
 ÉTAPE 6 — ÉCRIRE
-  npx wrangler kv key put --binding=BONS bons --path=/tmp/bons.json --remote
+  npx wrangler kv key put --binding=BONS bons --path="$env:TEMP\bons.json" --remote
 L'option --remote est obligatoire. Sans elle l'écriture part dans un
 stockage local et la production ne change pas.
 
 ÉTAPE 7 — VÉRIFIER ET NETTOYER
 Relis KV, compte les bons, vérifie que le total a augmenté du nombre
-attendu. Puis supprime /tmp/bons.json : il contient des données
+attendu. Puis supprime $env:TEMP\bons.json : il contient des données
 personnelles.
 
 ÉTAPE 8 — RENDRE COMPTE
@@ -298,6 +312,7 @@ INTERDITS
 - Ne modifie pas workers_dev dans wrangler.toml.
 
 CONTRÔLE FINAL
+Tu tournes sous Windows, dans PowerShell. python3 s'appelle python.
 Lance git status dans le clone. Aucun fichier contenant des bons ne doit
 y apparaître. Si c'est le cas, ne committe rien et signale-le.
 ```
@@ -348,6 +363,8 @@ Marianne et ne touche pas aux données.
 | `binding BONS not found` | commande lancée hors du clone | se placer dans le dossier du dépôt |
 | `git status` montre un fichier avec des bons | la tâche a écrit dans le dépôt | ne rien committer, supprimer, corriger la tâche |
 | Dashboard : « Session expirée » | jeton Access expiré côté navigateur | recharger et se reconnecter |
+| `Unexpected token` en lisant `bons.json` | fichier écrit par `>` en UTF-16 avec BOM | réécrire avec `[IO.File]::WriteAllText` (étape A) |
+| `python3` introuvable | sous Windows la commande est `python` | utiliser `python` |
 | Un bon attribué à « En cours de recrutement » | poste vacant dans le tableau des secteurs | laisser le gestionnaire vide et le signaler |
 
 ---
