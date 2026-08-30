@@ -152,20 +152,50 @@ disque.
 Seule l'étape 1 dépend de l'organisation de Marianne. Les étapes 2 à 5 sont
 mécaniques et figées.
 
-### 5.2 Récupérer l'étape de collecte
+### 5.2 D'où viennent les bons
 
-L'ancienne tâche programmée contenait déjà cette logique : d'où viennent les bons
-(boîte mail, fichier déposé, saisie manuelle), à quelle fréquence, comment ils sont
-mis en forme. **Cette partie-là se conserve intégralement.**
+**La collecte est déjà automatisée, hors de Claude.** Un flux Power Automate appartenant
+à Marianne, nommé « Enregistrer les pièces jointes Office 365 dans le dossier OneDrive
+Entreprise spécifié », tourne en continu :
 
-Si l'ancienne tâche n'est plus consultable, demander directement à Marianne :
+| | |
+|---|---|
+| Déclencheur | nouveau mail avec pièce jointe, expéditeur `rondier@lplaprovidence.com` |
+| Action | enregistre chaque pièce jointe sur le OneDrive de Marianne |
+| Dossier de destination | **`/Bons dintervention`** (sans apostrophe, c'est le nom réel) |
+| Nom de fichier | `Bon d'intervention N°<numero>..docx` |
+| Fréquence | à chaque mail, plusieurs fois par jour |
 
-- D'où arrivent les bons d'intervention ? (mail de l'astreinte, export, autre)
-- À quelle fréquence veut-elle la mise à jour ?
-- Y a-t-il un mail récapitulatif à envoyer après coup ?
+Le prestataire envoie donc un bon par mail, en `.docx`, et Power Automate le dépose sur
+OneDrive. **La tâche Claude n'a rien à collecter dans la boîte mail** : elle lit
+simplement les nouveaux fichiers du dossier.
 
-Ne pas deviner. Une collecte inventée produirait des données fausses dans un tableau
-de bord d'exploitation.
+Sur le poste de Marianne, OneDrive est synchronisé localement : le dossier est
+accessible comme un dossier ordinaire, sans aucune authentification supplémentaire.
+Le localiser une fois avec :
+
+```bash
+ls ~/Library/CloudStorage/OneDrive-*/["B"]ons\ dintervention 2>/dev/null || \
+  find ~ -maxdepth 4 -type d -name "Bons dintervention" 2>/dev/null
+```
+
+**Ce que le nom de fichier donne déjà.** `Bon d'intervention N°50.08.2026..docx`
+contient le `numero` : `50.08.2026`. C'est la clé de dé-duplication — un fichier dont
+le numéro est déjà dans KV a déjà été traité.
+
+**Ce que le `.docx` doit fournir.** Les autres champs (`date`, `heure`, `site`,
+`urgence`, `statut`, `astreinte`, `motif`, `constat`, `action`, `remarque`) se lisent
+dans le corps du document. Ouvrir un fichier existant du dossier pour repérer où
+chaque information se trouve avant d'écrire l'extraction.
+
+**Le secteur et le gestionnaire** se déduisent du destinataire du mail d'origine
+(`secteurrobespierre@semise.fr` → secteur Robespierre), information qui n'est pas dans
+le `.docx`. Si le document ne porte pas le secteur, deux options : le déduire de la
+résidence, ou demander à Marianne d'ajouter une action au flux Power Automate pour
+enregistrer aussi les métadonnées du mail.
+
+**À caler avec Marianne :** la fréquence de mise à jour, et s'il faut un mail
+récapitulatif après coup.
 
 ### 5.3 Modèle de prompt pour la tâche
 
@@ -183,9 +213,18 @@ Va jusqu'au bout en une seule traite. Ne demande aucune confirmation :
 personne ne lit pendant l'exécution.
 
 ÉTAPE 1 — COLLECTER
-[À COMPLÉTER : d'où viennent les nouveaux bons et comment les extraire.
-Produire une liste d'objets au schéma décrit dans docs/TACHE-PROGRAMMEE.md,
-section 6.]
+Les bons arrivent en .docx dans le dossier OneDrive synchronisé
+« Bons dintervention », déposés par un flux Power Automate à chaque mail
+du prestataire. Tu n'as aucune boîte mail à consulter.
+
+Liste les fichiers du dossier. Le numéro du bon est dans le nom du
+fichier : « Bon d'intervention N°50.08.2026..docx » donne le numero
+50.08.2026. Écarte tout fichier dont le numéro est déjà dans KV : il a
+déjà été traité.
+
+Pour chaque fichier restant, ouvre le .docx et extrais les champs du
+schéma (section 6 du document). N'invente aucune valeur : un champ que le
+document ne donne pas reste une chaîne vide.
 
 ÉTAPE 2 — LIRE L'ÉTAT ACTUEL
   npx wrangler kv key get --binding=BONS bons --remote > /tmp/bons.json
@@ -231,8 +270,9 @@ apparaître. Si c'est le cas, ne committe rien et signale-le.
 
 ### 5.4 Fréquence
 
-L'ancienne chaîne produisait des lots (voir le commit « Rattrapage bons n°046.07.2026
-à 36.08.2026 »), ce qui suggère un rythme irrégulier. À caler avec Marianne. Le
+Power Automate dépose les fichiers en continu, plusieurs fois par jour. La tâche Claude
+peut donc tourner à n'importe quel rythme : elle rattrape tout ce qui est arrivé depuis
+la dernière fois, puisque la dé-duplication se fait sur le `numero`. Le
 tableau de bord met en avant les bons des sept derniers jours : une mise à jour
 quotidienne ou tous les deux jours a du sens, une mise à jour hebdomadaire laisserait
 passer des dossiers en attente.
