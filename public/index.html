@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Tableau de bord - Bons d'intervention AAF La Providence</title>
+<style>
+  :root {
+    /* Identité — une seule teinte, trois valeurs */
+    --ardoise-900: #22303f;
+    --ardoise-700: #33475c;
+    --ardoise-500: #5b7186;
+
+    /* Neutres */
+    --fond:        #f4f5f7;
+    --surface:     #ffffff;
+    --surface-alt: #fafbfc;
+    --bordure:     #e2e6ea;
+    --texte:       #1f2a37;
+    --texte-doux:  #61707f;
+
+    /* Fonctionnels — réservés au sens, jamais à la décoration */
+    --alerte:      #9d2f26;
+    --alerte-bg:   #f6eae8;
+    --attente:     #96631a;
+    --attente-bg:  #f8f0e3;
+    --resolu:      #2c6549;
+    --resolu-bg:   #e9f1ec;
+    --neutre:      #6b7684;
+    --neutre-bg:   #eceef1;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--fond);
+    color: var(--texte);
+  }
+
+  nav.topnav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--ardoise-900);
+    color: white;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+  }
+  nav.topnav .nav-title {
+    font-weight: 700;
+    font-size: 14.5px;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  nav.topnav .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+  nav.topnav .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .nav-btn {
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.28);
+    color: white;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 7px 13px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.25); }
+  .nav-btn.active { background: var(--surface); border-color: var(--surface); color: var(--ardoise-900); }
+  .nav-btn.ghost { background: transparent; }
+  .nav-select {
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.28);
+    color: white;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 7px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+  .nav-select option { color: var(--texte); }
+  .date-filter {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.1);
+    padding: 5px 10px;
+    border-radius: 20px;
+    flex-wrap: wrap;
+  }
+  .date-filter label {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .date-filter input[type="date"] {
+    border: none;
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-size: 12.5px;
+    font-family: inherit;
+  }
+
+  header {
+    background: var(--ardoise-900);
+    border-bottom: 1px solid rgba(255,255,255,0.10);
+    color: white;
+    padding: 28px 40px;
+  }
+  header h1 {
+    margin: 0 0 6px 0;
+    font-size: 24px;
+    font-weight: 600;
+  }
+  header p {
+    margin: 0;
+    opacity: 0.85;
+    font-size: 14px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 28px 24px 60px; }
+
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .kpi {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border-top: 3px solid var(--ardoise-500);
+  }
+  .kpi .num { font-size: 30px; font-weight: 700; color: var(--ardoise-900); line-height: 1.1; }
+  .kpi.alert { border-top-color: var(--alerte); }
+  .kpi.alert .num { color: var(--alerte); }
+  .kpi .label { font-size: 12.5px; color: var(--texte-doux); margin-top: 4px; }
+
+  h2.section-title {
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ardoise-900);
+    border-bottom: 2px solid var(--ardoise-700);
+    padding-bottom: 6px;
+    margin: 36px 0 18px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  h2.section-title .count {
+    text-transform: none;
+    font-size: 12.5px;
+    color: var(--texte-doux);
+    letter-spacing: normal;
+    font-weight: 400;
+  }
+
+  .empty-msg {
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    color: var(--texte-doux);
+    font-size: 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .card {
+    background: var(--surface);
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    margin-bottom: 18px;
+    overflow: hidden;
+    border-left: 4px solid var(--attente);
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .card.closed { border-left-color: var(--resolu); }
+
+  .card-main { flex: 1 1 320px; min-width: 0; }
+
+  .card-side {
+    flex: 0 0 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px;
+    background: var(--surface-alt);
+    border-left: 1px solid var(--bordure);
+    text-align: center;
+  }
+  .mail-btn {
+    display: block;
+    text-align: center;
+    background: var(--ardoise-700);
+    color: white;
+    text-decoration: none;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 9px 14px;
+    border-radius: 8px;
+    line-height: 1.3;
+  }
+  .mail-btn:hover { background: var(--ardoise-900); }
+  .mail-btn .sub {
+    display: block;
+    font-weight: 400;
+    font-size: 11px;
+    opacity: 0.85;
+    margin-top: 3px;
+  }
+  .done-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: var(--surface);
+    color: var(--ardoise-900);
+    border: 1px solid var(--bordure);
+    font-size: 12.5px;
+    font-weight: 600;
+    font-family: inherit;
+    padding: 9px 14px;
+    border-radius: 8px;
+    line-height: 1.3;
+    cursor: pointer;
+  }
+  .done-btn:hover { background: var(--fond); border-color: var(--ardoise-500); }
+  .undo-btn {
+    display: inline-block;
+    background: transparent;
+    color: var(--ardoise-900);
+    border: 1px solid var(--ardoise-700);
+    font-size: 12.5px;
+    font-weight: 600;
+    font-family: inherit;
+    padding: 9px 14px;
+    border-radius: 8px;
+    line-height: 1.3;
+    cursor: pointer;
+  }
+  .undo-btn:hover { background: var(--fond); }
+  .traite-date {
+    font-size: 11.5px;
+    color: var(--texte-doux);
+    margin-top: 8px;
+  }
+
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background: var(--surface-alt);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .card-head .titre { font-weight: 600; font-size: 15.5px; }
+  .card-head .meta { font-size: 12.5px; color: var(--texte-doux); }
+
+  .badge {
+    display: inline-block;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+  .badge.pending { background: var(--attente-bg); color: var(--attente); }
+  .badge.closed { background: var(--resolu-bg); color: var(--resolu); }
+  .badge.astreinte-oui { background: var(--resolu-bg); color: var(--resolu); }
+  .badge.astreinte-non { background: var(--neutre-bg); color: var(--texte-doux); }
+
+  .urgence {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 20px;
+    margin-left: 6px;
+    color: white;
+  }
+  .urgence.u1 { background: var(--alerte); }
+  .urgence.u2 { background: var(--attente); }
+  .urgence.u3 { background: var(--neutre); }
+
+  .card-body { padding: 16px 20px; font-size: 14px; line-height: 1.5; }
+  .card-body .row { margin-bottom: 8px; }
+  .card-body .row strong { color: var(--ardoise-900); }
+  .action-box {
+    margin-top: 12px;
+    background: var(--fond);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13.5px;
+  }
+  .action-box strong { color: var(--alerte); }
+  .card.closed .action-box strong { color: var(--resolu); }
+
+  .hist-panel {
+    background: var(--surface);
+    border: 1px solid var(--bordure);
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    overflow: hidden;
+    margin-top: 36px;
+  }
+  .hist-summary {
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    font-size: 15px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ardoise-900);
+  }
+  .hist-summary::-webkit-details-marker { display: none; }
+  .hist-summary:hover { background: var(--surface-alt); }
+  .hist-summary .count {
+    margin-left: auto;
+    font-size: 12.5px;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--texte-doux);
+  }
+  .hist-chevron {
+    font-size: 10px;
+    color: var(--ardoise-500);
+    transition: transform 0.15s ease;
+  }
+  .hist-panel[open] .hist-chevron { transform: rotate(90deg); }
+  .hist-panel[open] .hist-summary { border-bottom: 1px solid var(--bordure); }
+
+  table.historique {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    font-size: 13.5px;
+  }
+  table.historique th {
+    background: var(--ardoise-700);
+    color: white;
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+  }
+  table.historique td {
+    padding: 10px 14px;
+    border-top: 1px solid var(--bordure);
+  }
+  table.historique tr:hover td { background: var(--surface-alt); }
+  .mail-btn-sm,
+  .done-btn-sm {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+    padding: 6px 10px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .mail-btn-sm {
+    background: var(--ardoise-700);
+    color: #fff;
+  }
+  .mail-btn-sm:hover { background: var(--ardoise-900); }
+  .done-btn-sm {
+    margin-top: 8px;
+    background: var(--surface);
+    color: var(--ardoise-900);
+    border-color: var(--bordure);
+  }
+  .done-btn-sm:hover { background: var(--fond); border-color: var(--ardoise-500); }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--texte-doux);
+    margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="nav-title">Bons d'intervention &middot; AAF La Providence</div>
+  <div class="nav-actions">
+    <button id="btnDefault" class="nav-btn">7 derniers jours</button>
+    <select id="statusFilter" class="nav-select">
+      <option value="all">Tous les dossiers</option>
+      <option value="attente">Dossiers en attente</option>
+      <option value="cloture">Dossiers clôturés</option>
+    </select>
+    <div class="date-filter">
+      <label>Du <input type="date" id="dateFrom"></label>
+      <label>au <input type="date" id="dateTo"></label>
+      <button id="btnApplyRange" class="nav-btn">Filtrer</button>
+      <button id="btnReset" class="nav-btn ghost">Réinitialiser</button>
+    </div>
+  </div>
+  <div class="nav-right">
+    <button id="btnAccueil" class="nav-btn ghost">&larr; Accueil</button>
+    <button id="btnTraites" class="nav-btn ghost">Sujets traités</button>
+  </div>
+</nav>
+
+<header>
+  <h1>Tableau de bord - Bons d'intervention</h1>
+  <p id="headerSubtitle">AAF La Providence &middot; Client SEMISE</p>
+</header>
+
+<div class="wrap">
+
+  <div id="dashboardWrap">
+    <div class="kpis" id="kpis"></div>
+
+    <h2 class="section-title">
+      <span id="sectionTitle">Focus</span>
+      <span class="count" id="sectionCount"></span>
+    </h2>
+
+    <div id="cardsContainer"></div>
+
+    <details id="histWrap" class="hist-panel">
+      <summary class="hist-summary">
+        <span class="hist-chevron">&#9654;</span>
+        <span>Historique</span>
+        <span class="count" id="histCount"></span>
+      </summary>
+      <table class="historique">
+        <thead>
+          <tr>
+            <th>N°</th>
+            <th>Date</th>
+            <th>Site</th>
+            <th>Motif</th>
+            <th>Statut</th>
+            <th>Astreinte</th>
+            <th>Gestionnaire de site</th>
+            <th>Remarque</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="histBody"></tbody>
+      </table>
+    </details>
+  </div>
+
+  <div id="traitesWrap" style="display:none;">
+    <h2 class="section-title">
+      <span>Sujets traités</span>
+      <span class="count" id="traitesCount"></span>
+    </h2>
+    <div id="traitesContainer"></div>
+  </div>
+
+  <footer id="footerNote">Généré à partir des bons d'intervention AAF La Providence</footer>
+</div>
+
+<script>
+// ---------------------------------------------------------------
+// Les bons d'intervention ne sont PLUS écrits dans cette page.
+// Ils contiennent des données nominatives de locataires et sont
+// désormais servis par le Worker sur /api/bons, derrière
+// l'authentification Cloudflare Access (cf. src/worker.js).
+// Ne jamais réintroduire de données réelles dans ce fichier :
+// il est versionné et peut être lu par des tiers.
+// ---------------------------------------------------------------
+let bons = [];
+
+let state = { dateMode: "default", from: null, to: null, statusFilter: "all", view: "dashboard" };
+
+// ---------------------------------------------------------------
+// Sujets traités : marquage local (par navigateur) des dossiers
+// que Marianne considère comme traités. Un dossier marqué disparaît
+// du Focus et de l'Historique et apparaît dans l'onglet "Sujets
+// traités", d'où il peut être remis en cours si besoin.
+// ---------------------------------------------------------------
+const TRAITES_KEY = "bonsTraitesSemise";
+function loadTraites() {
+  try {
+    const raw = localStorage.getItem(TRAITES_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+function saveTraites(obj) {
+  try { localStorage.setItem(TRAITES_KEY, JSON.stringify(obj)); } catch (e) {}
+}
+function marquerTraite(numero) {
+  const t = loadTraites();
+  t[numero] = new Date().toISOString();
+  saveTraites(t);
+}
+function remettreEnCours(numero) {
+  const t = loadTraites();
+  delete t[numero];
+  saveTraites(t);
+}
+function traiteBonsList() {
+  const t = loadTraites();
+  return bons.filter(b => t[b.numero]).sort((a, b) => (t[b.numero] < t[a.numero] ? -1 : 1));
+}
+
+function fmtDate(iso) {
+  const [y, m, d] = iso.split("-");
+  return d + "/" + m;
+}
+function fmtDateFull(iso) {
+  const [y, m, d] = iso.split("-");
+  return d + "/" + m + "/" + y;
+}
+function todayISO() {
+  const t = new Date();
+  return t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
+}
+function daysAgo(iso) {
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const d = new Date(iso + "T00:00:00");
+  return Math.round((today - d) / 86400000);
+}
+function plainText(str) {
+  return (str || "").replace(/&middot;/g, "·");
+}
+
+function urgenceLabel(u) {
+  if (u === "u1") return '<span class="urgence u1">Urgence 1</span>';
+  if (u === "u2") return '<span class="urgence u2">Urgence 2</span>';
+  if (u === "u3") return '<span class="urgence u3">Urgence 3</span>';
+  return "";
+}
+function statutBadge(s) {
+  return s === "attente"
+    ? '<span class="badge pending">Dossier en attente</span>'
+    : '<span class="badge closed">Clôturé</span>';
+}
+function astreinteBadge(b) {
+  if (b.astreinte === "oui") return '<span class="badge astreinte-oui">Contacté</span>' + (b.astreinteDetail ? " — " + b.astreinteDetail : "");
+  return '<span class="badge astreinte-non">Non contacté</span>';
+}
+
+function buildMailto(b) {
+  if (!b.gestionnaireEmail) return "";
+  const site = plainText(b.site);
+  const nomGestionnaire = plainText(b.gestionnaire).replace(/\s*\(secteur[^)]*\)/i, "").trim();
+  const subject = "Bon d'intervention n°" + b.numero + " - " + site;
+  const lignes = [];
+  lignes.push("Bonjour,");
+  lignes.push("");
+  lignes.push("Je fais suite au bon d'intervention n°" + b.numero + " (" + site + "), motif : " + b.motif + ".");
+  if (b.constat) lignes.push("Constat au dernier point : " + b.constat);
+  if (b.action) {
+    lignes.push("");
+    lignes.push("Action attendue : " + b.action);
+  } else if (b.remarque) {
+    lignes.push("");
+    lignes.push("Remarque : " + b.remarque);
+  }
+  lignes.push("");
+  lignes.push("Peux-tu stp me faire un point sur l'avancement de ce dossier ?");
+  lignes.push("");
+  lignes.push("Merci,");
+  lignes.push("Marianne Finel");
+  const body = lignes.join("\n");
+  return "mailto:" + b.gestionnaireEmail + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+}
+
+function renderCard(b) {
+  const meta = b.date.split("-").reverse().join("/") + (b.heure ? " &middot; " + b.heure : "");
+  const actionOrRemarque = b.action
+    ? '<div class="action-box"><strong>Action requise :</strong> ' + b.action + '</div>'
+    : (b.remarque ? '<div class="action-box"><strong>Remarque :</strong> ' + b.remarque + '</div>' : "");
+  const constat = b.constat ? '<div class="row"><strong>Constat :</strong> ' + b.constat + '</div>' : "";
+  const mailLink = buildMailto(b);
+  const secteurTrouve = plainText(b.gestionnaire).match(/\(secteur\s+([^)]+)\)/i);
+  const libelleSecteur = secteurTrouve ? "Secteur " + secteurTrouve[1].trim() : "";
+  const side = '<div class="card-side">' +
+    (mailLink ? '<a class="mail-btn" href="' + mailLink + '">Relancer par email' + (libelleSecteur ? '<span class="sub">' + libelleSecteur + '</span>' : '') + '</a>' : '') +
+    '<button type="button" class="done-btn" data-numero="' + b.numero + '">Marquer comme traité</button>' +
+    '</div>';
+  return '' +
+    '<div class="card ' + (b.statut === "cloture" ? "closed" : "") + '">' +
+    '  <div class="card-main">' +
+    '    <div class="card-head">' +
+    '      <div class="titre">Bon n°' + b.numero + ' &middot; ' + b.site + ' ' + urgenceLabel(b.urgence) + '</div>' +
+    '      <div class="meta">' + meta + '</div>' +
+    '    </div>' +
+    '    <div class="card-body">' +
+    '      <div class="row"><strong>Statut :</strong> ' + statutBadge(b.statut) + '</div>' +
+    '      <div class="row"><strong>Cadre d\'astreinte :</strong> ' + astreinteBadge(b) + '</div>' +
+    '      <div class="row"><strong>Gestionnaire de site :</strong> ' + b.gestionnaire + ' — ' + b.gestionnaireTel + '</div>' +
+    '      <div class="row"><strong>Motif :</strong> ' + b.motif + '</div>' +
+    constat +
+    actionOrRemarque +
+    '    </div>' +
+    '  </div>' +
+    side +
+    '</div>';
+}
+
+function renderRow(b) {
+  const mailLink = buildMailto(b);
+  const mailCell = (mailLink ? '<a class="mail-btn-sm" href="' + mailLink + '">Relancer par email</a>' : "") +
+    '<button type="button" class="done-btn-sm" data-numero="' + b.numero + '">Marquer comme traité</button>';
+  return '' +
+    '<tr>' +
+    '  <td>' + b.numero + '</td>' +
+    '  <td>' + fmtDate(b.date) + '</td>' +
+    '  <td>' + b.site + '</td>' +
+    '  <td>' + b.motif + '</td>' +
+    '  <td>' + statutBadge(b.statut) + '</td>' +
+    '  <td>' + astreinteBadge(b) + '</td>' +
+    '  <td>' + b.gestionnaire + ' — ' + b.gestionnaireTel + '</td>' +
+    '  <td>' + (b.remarque || (b.action ? b.action : "")) + '</td>' +
+    '  <td>' + mailCell + '</td>' +
+    '</tr>';
+}
+
+function renderCardTraite(b, traites) {
+  const meta = b.date.split("-").reverse().join("/") + (b.heure ? " &middot; " + b.heure : "");
+  const constat = b.constat ? '<div class="row"><strong>Constat :</strong> ' + b.constat + '</div>' : "";
+  const remarqueOrAction = b.remarque
+    ? '<div class="action-box"><strong>Remarque :</strong> ' + b.remarque + '</div>'
+    : (b.action ? '<div class="action-box"><strong>Action :</strong> ' + b.action + '</div>' : "");
+  const marqueLe = traites[b.numero] ? fmtDateFull(traites[b.numero].slice(0, 10)) : "";
+  return '' +
+    '<div class="card closed">' +
+    '  <div class="card-main">' +
+    '    <div class="card-head">' +
+    '      <div class="titre">Bon n°' + b.numero + ' &middot; ' + b.site + ' ' + urgenceLabel(b.urgence) + '</div>' +
+    '      <div class="meta">' + meta + '</div>' +
+    '    </div>' +
+    '    <div class="card-body">' +
+    '      <div class="row"><strong>Statut d\'origine :</strong> ' + statutBadge(b.statut) + '</div>' +
+    '      <div class="row"><strong>Gestionnaire de site :</strong> ' + b.gestionnaire + ' — ' + b.gestionnaireTel + '</div>' +
+    '      <div class="row"><strong>Motif :</strong> ' + b.motif + '</div>' +
+    constat +
+    remarqueOrAction +
+    '    </div>' +
+    '  </div>' +
+    '  <div class="card-side">' +
+    '    <button type="button" class="undo-btn" data-numero="' + b.numero + '">Remettre en cours</button>' +
+    (marqueLe ? '<div class="traite-date">Traité le ' + marqueLe + '</div>' : '') +
+    '  </div>' +
+    '</div>';
+}
+
+function sortDesc(list) {
+  // 1. dossiers en attente avant les dossiers clôturés
+  // 2. à statut égal, par ordre d'urgence (Urgence 1 > 2 > 3 > non renseignée)
+  // 3. à urgence égale, ordre antéchronologique (le plus récent en premier)
+  const statutRang = (s) => (s === "attente" ? 0 : 1);
+  const urgenceRang = (u) => (u === "u1" ? 1 : u === "u2" ? 2 : u === "u3" ? 3 : 4);
+  return list.slice().sort((a, b) => {
+    const sa = statutRang(a.statut), sb = statutRang(b.statut);
+    if (sa !== sb) return sa - sb;
+    const ua = urgenceRang(a.urgence), ub = urgenceRang(b.urgence);
+    if (ua !== ub) return ua - ub;
+    if (a.date !== b.date) return b.date.localeCompare(a.date);
+    return b.numero.localeCompare(a.numero);
+  });
+}
+
+// Purge : un dossier clôturé disparaît du tableau de bord 7 jours après sa date.
+// Les dossiers en attente ne sont jamais purgés, quel que soit leur âge.
+function activeBons() {
+  const t = loadTraites();
+  return bons.filter(b => !t[b.numero] && (b.statut === "attente" || daysAgo(b.date) <= 6));
+}
+
+function render() {
+  const cardsContainer = document.getElementById("cardsContainer");
+  const histWrap = document.getElementById("histWrap");
+  const histBody = document.getElementById("histBody");
+  const sectionTitle = document.getElementById("sectionTitle");
+  const sectionCount = document.getElementById("sectionCount");
+  const headerSubtitle = document.getElementById("headerSubtitle");
+  const dashboardWrap = document.getElementById("dashboardWrap");
+  const traitesWrap = document.getElementById("traitesWrap");
+  const traitesContainer = document.getElementById("traitesContainer");
+  const traitesCount = document.getElementById("traitesCount");
+  const btnTraites = document.getElementById("btnTraites");
+
+  const traitesData = loadTraites();
+  const traitesListe = traiteBonsList();
+  btnTraites.textContent = "Sujets traités";
+  document.getElementById("btnAccueil").style.display = state.view === "traites" ? "" : "none";
+  // en vue « Sujets traités », les filtres du tableau de bord ne s'appliquent pas
+  document.querySelector(".nav-actions").style.display = state.view === "traites" ? "none" : "";
+  btnTraites.classList.toggle("active", state.view === "traites");
+  btnTraites.classList.toggle("ghost", state.view !== "traites");
+
+  if (state.view === "traites") {
+    dashboardWrap.style.display = "none";
+    traitesWrap.style.display = "block";
+    traitesCount.textContent = traitesListe.length + (traitesListe.length > 1 ? " dossiers" : " dossier");
+    traitesContainer.innerHTML = traitesListe.length
+      ? traitesListe.map(b => renderCardTraite(b, traitesData)).join("")
+      : '<div class="empty-msg">Aucun sujet traité pour le moment.</div>';
+    headerSubtitle.textContent = "AAF La Providence · Client SEMISE · Sujets marqués comme traités";
+    return;
+  }
+  dashboardWrap.style.display = "block";
+  traitesWrap.style.display = "none";
+
+  document.getElementById("btnDefault").classList.toggle("active", state.dateMode === "default");
+  document.getElementById("statusFilter").value = state.statusFilter;
+
+  const active = activeBons();
+  let scoped = [];
+  let archive = [];
+  let dateLabel;
+  let subtitleBase;
+
+  if (state.dateMode === "range") {
+    scoped = active.filter(b =>
+      (!state.from || b.date >= state.from) && (!state.to || b.date <= state.to)
+    );
+    const fromLabel = state.from ? fmtDateFull(state.from) : "…";
+    const toLabel = state.to ? fmtDateFull(state.to) : "…";
+    dateLabel = "Résultats du " + fromLabel + " au " + toLabel;
+    subtitleBase = "AAF La Providence · Client SEMISE · Vue filtrée par date";
+  } else {
+    scoped = active.filter(b => daysAgo(b.date) >= 0 && daysAgo(b.date) <= 6);
+    archive = active.filter(b => daysAgo(b.date) > 6 || daysAgo(b.date) < 0);
+    dateLabel = "Focus — bons des 7 derniers jours";
+    subtitleBase = "AAF La Providence · Client SEMISE · Mis à jour automatiquement (fenêtre glissante de 7 jours, clôturés purgés au-delà)";
+  }
+
+  if (state.statusFilter !== "all") {
+    scoped = scoped.filter(b => b.statut === state.statusFilter);
+    archive = archive.filter(b => b.statut === state.statusFilter);
+  }
+
+  const featured = sortDesc(scoped);
+  archive = sortDesc(archive);
+
+  const statusLabel = state.statusFilter === "attente" ? " · Dossiers en attente uniquement"
+    : state.statusFilter === "cloture" ? " · Dossiers clôturés uniquement" : "";
+
+  sectionTitle.textContent = dateLabel + (state.statusFilter !== "all" ? " · " + (state.statusFilter === "attente" ? "en attente" : "clôturés") : "");
+  headerSubtitle.textContent = subtitleBase + statusLabel;
+  histWrap.style.display = archive.length ? "block" : "none";
+  document.getElementById("histCount").textContent =
+    archive.length + (archive.length > 1 ? " bons" : " bon");
+
+  sectionCount.textContent = featured.length + (featured.length > 1 ? " dossiers" : " dossier");
+
+  cardsContainer.innerHTML = featured.length
+    ? featured.map(renderCard).join("")
+    : '<div class="empty-msg">Aucun bon d\'intervention ne correspond à cette vue.</div>';
+
+  if (archive.length) {
+    histBody.innerHTML = archive.map(renderRow).join("");
+  }
+
+  // KPIs globaux (sur les dossiers actifs, hors clôturés purgés) — indépendants du filtre, sauf le dernier
+  const totalAttente = active.filter(b => b.statut === "attente").length;
+  const totalCloture = active.filter(b => b.statut === "cloture").length;
+  const totalAction = active.filter(b => b.action).length;
+
+  document.getElementById("kpis").innerHTML =
+    '<div class="kpi alert"><div class="num">' + totalAttente + '</div><div class="label">Dossiers en attente (total)</div></div>' +
+    '<div class="kpi"><div class="num">' + totalCloture + '</div><div class="label">Dossiers clôturés (total)</div></div>' +
+    '<div class="kpi alert"><div class="num">' + totalAction + '</div><div class="label">Actions requises de ta part</div></div>' +
+    '<div class="kpi"><div class="num">' + (featured.length + archive.length) + '</div><div class="label">Bons dans la vue actuelle</div></div>';
+
+  document.getElementById("footerNote").textContent =
+    (bons.length
+      ? "Généré à partir des bons d'intervention AAF La Providence n°" + bons[0].numero + " à " + bons[bons.length - 1].numero
+      : "Aucun bon d'intervention à afficher") +
+    " · Consulté le " + fmtDateFull(todayISO());
+}
+
+document.getElementById("btnDefault").addEventListener("click", () => {
+  state.dateMode = "default";
+  state.from = null;
+  state.to = null;
+  document.getElementById("dateFrom").value = "";
+  document.getElementById("dateTo").value = "";
+  render();
+});
+
+document.getElementById("statusFilter").addEventListener("change", (e) => {
+  state.statusFilter = e.target.value;
+  render();
+});
+
+document.getElementById("btnApplyRange").addEventListener("click", () => {
+  const from = document.getElementById("dateFrom").value || null;
+  const to = document.getElementById("dateTo").value || null;
+  if (!from && !to) return;
+  state.dateMode = "range";
+  state.from = from;
+  state.to = to;
+  render();
+});
+
+document.getElementById("btnReset").addEventListener("click", () => {
+  document.getElementById("dateFrom").value = "";
+  document.getElementById("dateTo").value = "";
+  state.dateMode = "default";
+  state.from = null;
+  state.to = null;
+  state.statusFilter = "all";
+  render();
+});
+
+document.getElementById("btnTraites").addEventListener("click", () => {
+  state.view = "traites";
+  render();
+});
+
+document.getElementById("btnAccueil").addEventListener("click", () => {
+  state.view = "dashboard";
+  render();
+});
+
+document.getElementById("histBody").addEventListener("click", (e) => {
+  const btn = e.target.closest(".done-btn-sm");
+  if (!btn) return;
+  marquerTraite(btn.getAttribute("data-numero"));
+  render();
+});
+
+document.getElementById("cardsContainer").addEventListener("click", (e) => {
+  const btn = e.target.closest(".done-btn");
+  if (!btn) return;
+  marquerTraite(btn.getAttribute("data-numero"));
+  render();
+});
+
+document.getElementById("traitesContainer").addEventListener("click", (e) => {
+  const btn = e.target.closest(".undo-btn");
+  if (!btn) return;
+  remettreEnCours(btn.getAttribute("data-numero"));
+  render();
+});
+
+// ---------------------------------------------------------------
+// Amorçage : on récupère les bons auprès du Worker, puis on rend.
+// Le premier rendu est volontairement déclenché ici, et non au
+// chargement du script, puisque les données arrivent en asynchrone.
+// ---------------------------------------------------------------
+function afficherMessage(texte) {
+  let el = document.getElementById("appMessage");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "appMessage";
+    el.style.cssText =
+      "margin:16px auto;max-width:900px;padding:14px 18px;border-radius:10px;" +
+      "background:#fdf2f2;border:1px solid #e3b7b7;color:#8a2b2b;font-size:15px;";
+    document.body.insertBefore(el, document.body.children[1] || null);
+  }
+  el.textContent = texte;
+}
+
+async function chargerBons() {
+  let r;
+  try {
+    r = await fetch("/api/bons", { credentials: "include", cache: "no-store" });
+  } catch (e) {
+    afficherMessage("Connexion au serveur impossible. Vérifiez votre réseau, puis rechargez la page.");
+    return;
+  }
+  if (r.status === 401 || r.status === 403) {
+    afficherMessage("Session expirée. Rechargez la page pour vous reconnecter.");
+    return;
+  }
+  if (!r.ok) {
+    afficherMessage("Impossible de charger les bons d'intervention (erreur " + r.status + ").");
+    return;
+  }
+  try {
+    bons = await r.json();
+  } catch (e) {
+    afficherMessage("Réponse du serveur illisible. Prévenez l'administrateur.");
+    return;
+  }
+  render();
+}
+
+chargerBons();
+</script>
+
+</body>
+</html>

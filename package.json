@@ -1,0 +1,14 @@
+{
+  "name": "bons-intervention-semise",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "wrangler dev --var DEV_MODE:true",
+    "deploy": "wrangler deploy",
+    "seed": "wrangler kv key put --binding=BONS bons --path=data/bons.json --remote",
+    "seed:local": "wrangler kv key put --binding=BONS bons --path=data/bons.json --local"
+  },
+  "devDependencies": {
+    "wrangler": "^4"
+  }
+}

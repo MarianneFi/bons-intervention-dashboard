@@ -1,0 +1,9 @@
+# Données nominatives de locataires : ne doivent JAMAIS être versionnées.
+# Elles vivent dans Cloudflare KV, pas dans ce dépôt.
+data/
+*.bons.json
+
+node_modules/
+.wrangler/
+.dev.vars
+.DS_Store
