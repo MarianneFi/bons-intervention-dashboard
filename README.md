@@ -48,6 +48,12 @@ dans un commit, et ne jamais réintroduire de données dans `public/index.html`.
    npm run deploy
    ```
 
+## Tâche programmée
+
+La mise à jour automatique est décrite en détail dans
+[docs/TACHE-PROGRAMMEE.md](docs/TACHE-PROGRAMMEE.md) : préparation du poste, procédure
+complète, modèle de prompt pour la tâche, schéma des données et diagnostic.
+
 ## Mettre à jour les bons
 
 Modifier `data/bons.json` en local, puis `npm run seed`. Aucun déploiement
